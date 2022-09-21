@@ -213,7 +213,6 @@ export default function Home() {
 
 	useEffect(() => {
 		if (selectedTab === "View Proposals") {
-			console.log("yay");
 			getAllProposals();
 		}
 	}, [selectedTab]);
