@@ -11,8 +11,21 @@ import {
 	DEVS_DAO_ABI,
 	NFT_DEVS_ABI,
 } from "../constants";
+import { useTheme as useNextTheme } from "next-themes";
+import {
+	Navbar,
+	Text,
+	Button,
+	Link,
+	Switch,
+	Spacer,
+	Container,
+	useTheme,
+} from "@nextui-org/react";
 
 export default function Home() {
+	const { setTheme } = useNextTheme();
+	const { isDark, type } = useTheme();
 	const [treasuryBalance, setTreasuryBalance] = useState("0");
 	const [numberOfProposals, setNumberOfProposals] = useState("0");
 	const [proposals, setProposals] = useState([]);
@@ -355,6 +368,37 @@ export default function Home() {
 				/>
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
+			<Navbar isBordered variant="floating">
+				<Navbar.Brand>
+					<Text b color="inherit" hideIn="xs">
+						ACME
+					</Text>
+				</Navbar.Brand>
+				<Navbar.Content hideIn="xs">
+					<Navbar.Link href="#">Whitelist</Navbar.Link>
+					<Navbar.Link href="#">Mint NFT</Navbar.Link>
+					<Navbar.Link href="#">Claim Token</Navbar.Link>
+					<Navbar.Link isActive href="#">
+						Vote
+					</Navbar.Link>
+				</Navbar.Content>
+				<Navbar.Content>
+					<Navbar.Link color="inherit" href="#">
+						Login
+					</Navbar.Link>
+					<Navbar.Item>
+						<Button auto flat as={Link} href="#">
+							Sign Up
+						</Button>
+					</Navbar.Item>
+					<Switch
+						checked={isDark}
+						onChange={(e) =>
+							setTheme(e.target.checked ? "dark" : "light")
+						}
+					/>
+				</Navbar.Content>
+			</Navbar>
 
 			<main className={styles.main}>
 				<h1>Welcome to DEVS DAO</h1>
