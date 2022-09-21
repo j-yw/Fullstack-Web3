@@ -34,19 +34,7 @@ export default function Home() {
 	const [selectedTab, setSelectedTab] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [isWalletConnected, setIsWalletConnected] = useState(false);
-	const [currentTime, setCurrentTime] = useState("");
 	const web3ModalRef = useRef();
-
-	async function getTimeFromContract() {
-		try {
-			const provider = await getProviderOrSigner();
-			const contract = getDaoContractInstance(provider);
-			const time = await contract.getTime();
-			setCurrentTime(new Date(time.toNumber() * 1000));
-		} catch (error) {
-			console.error(error);
-		}
-	}
 
 	async function connectWallet() {
 		try {
@@ -97,14 +85,6 @@ export default function Home() {
 			const signer = await getProviderOrSigner(true);
 			const daoContract = getDaoContractInstance(signer);
 			const txn = await daoContract.createProposal(fakeNftTokenId);
-			console.log(
-				`🍀 \n | 🍄 file: index.js \n | 🍄 line 75 \n | 🍄 createProposal \n | 🍄 txn`,
-				txn
-			);
-			console.log(
-				`🍀 \n | 🍄 file: index.js \n | 🍄 line 75 \n | 🍄 createProposal \n | 🍄 fakeNftTokenId`,
-				fakeNftTokenId
-			);
 			setIsLoading(true);
 			await txn.wait();
 			await getNumberOfDaoProposals();
@@ -142,10 +122,6 @@ export default function Home() {
 				const proposal = await getProposalById(i);
 				proposals.push(proposal);
 			}
-			console.log(
-				`🍀 \n | 🍄 file: index.js \n | 🍄 line 106 \n | 🍄 getAllProposals \n | 🍄 proposals`,
-				proposals
-			);
 			setProposals(proposals);
 			return proposals;
 		} catch (error) {
@@ -179,10 +155,6 @@ export default function Home() {
 			await getAllProposals();
 		} catch (error) {
 			console.error(error);
-			console.log(
-				`🍀 \n | 🍄 file: index.js \n | 🍄 line 147 \n | 🍄 executeProposal \n | 🍄 error`,
-				error
-			);
 			window.alert(error);
 		}
 	}
@@ -235,7 +207,6 @@ export default function Home() {
 				getDAOTreasuryBalance();
 				getUserNFTBalance();
 				getNumberOfDaoProposals();
-				getTimeFromContract();
 			});
 		}
 	}, [isWalletConnected]);
