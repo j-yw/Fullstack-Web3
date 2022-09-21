@@ -81,10 +81,67 @@ export default function Home() {
 		}
 	}
 
-	async function getProposalById() {}
-	async function getAllProposals() {}
-	async function voteOnProposal() {}
-	async function executeProposal() {}
+	async function getProposalById(id) {
+		try {
+			const provider = await getProvidersOrSigner();
+			const daoContract = getDaoContractInstance(provider);
+			const proposal = await daoContract.proposals(id);
+			const parsedProposal = {
+				proposalId: id,
+				nftTokenId: proposal.nftTokenId.toString(),
+				deadline: new Date(parseInt(proposal.deadline.toString())),
+				yayVotes: proposal.yayVotes.toString(),
+				nayVotes: proposal.nayVotes.toString(),
+				excuted: proposal.excuted,
+			};
+
+			return parsedProposal;
+		} catch (error) {
+			console.error(error);
+		}
+	}
+	async function getAllProposals() {
+		try {
+			const proposals = [];
+			for (let i = 0; i < numberOfProposals; i++) {
+				const proposal = await getProposalById(i);
+				proposals.push(proposal);
+			}
+			setProposals[proposals];
+			return proposals;
+		} catch (error) {
+			console.error(error);
+		}
+	}
+	async function voteOnProposal(proposalId, _vote) {
+		try {
+			const signer = await getProvidersOrSigner(true);
+			const daoContract = getDaoContractInstance(signer);
+			let vote = _vote === "YAY" ? 0 : 1;
+			const txn = await daoContract.voteOnProposal(proposalId, vote);
+			setIsLoading(true);
+			await txn.wait();
+			setIsLoading(false);
+			await getAllProposals();
+		} catch (error) {
+			console.error(error);
+			window.alert(error.data.message);
+		}
+	}
+	async function executeProposal(proposalId) {
+		try {
+			const signer = await getProvidersOrSigner(true);
+			const daoContract = getDaoContractInstance(signer);
+			const txn = await daoContract.executeProposal(proposalId);
+			setIsLoading(true);
+			await txn.wait();
+			setIsLoading(false);
+			await getAllProposals();
+		} catch (error) {
+			console.error(error);
+			window.cancelAnimationFrame(error.data.message);
+		}
+	}
 
 	async function getProvidersOrSigner(needSigner = false) {
 		const provider = await web3ModalRef.current.connect();
@@ -125,9 +182,81 @@ export default function Home() {
 				disableInjectedProvider: false,
 			});
 
-			connectWallet().then(() => {});
+			connectWallet().then(() => {
+				getDAOTreasuryBalance();
+				getUserNFTBalance();
+				getNumberOfDaoProposals();
+			});
 		}
 	}, [isWalletConnected]);
+
+	useEffect(() => {
+		if (selectTab === "view proposals") {
+			getAllProposals();
+		}
+	}, [selectTab]);
+
+	function renderTabs() {
+		if (selectTab === "Create Proposal") {
+			return renderCreateProposalTab();
+		} else if (selectTab === "View Proposals") {
+			return renderViewProposalsTab();
+		}
+		return null;
+	}
+
+	function renderCreateProposalTab() {
+		if (isLoading) {
+			return (
+				<>
+					<div> loading, waiting for transaction</div>
+				</>
+			);
+		} else if (nftBalance === 0) {
+			return (
+				<>
+					<div>You do not own any NFTs</div>
+					<div>So you cannot create proposal or vote</div>
+				</>
+			);
+		} else {
+			return (
+				<>
+					<div>
+						<label>Fake NFT Token ID to Purchase: </label>
+						<input
+							placeholder="0"
+							type="number"
+							onChange={(e) => setFakeNftTokenId(e.target.value)}
+						/>
+						<button onClick={createProposal}>Create</button>
+					</div>
+				</>
+			);
+		}
+	}
+
+	function renderViewProposalsTab() {
+		if (isLoading) {
+			return (
+				<>
+					<div> loading, waiting for transaction</div>
+				</>
+			);
+		} else if (proposals.length === 0) {
+			return (
+				<>
+					<div>No proposals have been created</div>
+				</>
+			);
+		} else {
+			return (
+				<>
+					<div>All Proposals here</div>
+				</>
+			);
+		}
+	}
 
 	return (
 		<div className={styles.container}>
@@ -141,7 +270,19 @@ export default function Home() {
 			</Head>
 
 			<main className={styles.main}>
-				<h1>Start here</h1>
+				<h1>Welcome to DEVS DAO</h1>
+				<div>
+					Your NFT balance is {nftBalance}
+					<br />
+					Total number of proposals: {numberOfProposals}
+				</div>
+				<div>
+					<button>Create Proposal</button>
+				</div>
+				<div>
+					<button>View Proposal</button>
+				</div>
+				{renderTabs()}
 			</main>
 
 			<footer className={styles.footer}>
