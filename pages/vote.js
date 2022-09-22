@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Web3Modal from "web3modal";
 import {
 	DEVS_DAO_CONTRACT_ADDRESS,
-	NFT_DEVS_CONTRACT_ADDRESS,
 	DEVS_DAO_ABI,
-	NFT_DEVS_ABI,
+	DEVS_NFT_CONTRACT_ADDRESS,
+	DEVS_NFT_ABI,
 } from "../constants";
 import { Text, Button, Spacer } from "@nextui-org/react";
 
@@ -173,8 +173,8 @@ export default function Home() {
 	}
 	function getNftDevsContractInstance(providerOrSigner) {
 		return new Contract(
-			NFT_DEVS_CONTRACT_ADDRESS,
-			NFT_DEVS_ABI,
+			DEVS_NFT_CONTRACT_ADDRESS,
+			DEVS_NFT_ABI,
 			providerOrSigner
 		);
 	}
@@ -357,7 +357,7 @@ export default function Home() {
 					weight="bold"
 					transform="uppercase"
 				>
-					Notify Me Connect your wallet
+					Create Proposal
 				</Text>
 			</Button>
 			<Spacer />
