@@ -1,14 +1,12 @@
-import styles from "../styles/Home.module.css";
+import Web3Modal from "web3modal";
 import { Contract, providers } from "ethers";
 import { useEffect, useRef, useState } from "react";
-import Web3Modal from "web3modal";
 import {
 	DEVS_DAO_CONTRACT_ADDRESS,
 	DEVS_DAO_ABI,
 	DEVS_NFT_CONTRACT_ADDRESS,
 	DEVS_NFT_ABI,
 } from "../constants";
-import { Text, Button, Spacer } from "@nextui-org/react";
 
 export default function Home() {
 	const [treasuryBalance, setTreasuryBalance] = useState("0");
@@ -213,16 +211,12 @@ export default function Home() {
 
 	function renderCreateProposalTab() {
 		if (isLoading) {
-			return (
-				<>
-					<div> loading, waiting for transaction</div>
-				</>
-			);
+			return <h1> loading, waiting for transaction</h1>;
 		} else if (nftBalance === 0) {
 			return (
 				<>
-					<div>You do not own any NFTs</div>
-					<div>So you cannot create proposal or vote</div>
+					<h2>You do not own any NFTs</h2>
+					<h2>So you cannot create proposal or vote</h2>
 				</>
 			);
 		} else {
@@ -231,11 +225,17 @@ export default function Home() {
 					<div>
 						<label>Fake NFT Token ID to Purchase: </label>
 						<input
+							style={{ minWidth: "220px" }}
 							placeholder="0"
 							type="number"
 							onChange={(e) => setFakeNftTokenId(e.target.value)}
 						/>
-						<button onClick={createProposal}>Create</button>
+						<button
+							style={{ minWidth: "240px" }}
+							onClick={createProposal}
+						>
+							Create
+						</button>
 					</div>
 				</>
 			);
@@ -244,22 +244,14 @@ export default function Home() {
 
 	function renderViewProposalsTab() {
 		if (isLoading) {
-			return (
-				<div className={styles.description}>
-					Loading... Waiting for transaction...
-				</div>
-			);
+			return <h1>Loading... Waiting for transaction...</h1>;
 		} else if (proposals.length === 0) {
-			return (
-				<div className={styles.description}>
-					No proposals have been created
-				</div>
-			);
+			return <h1>No proposals have been created</h1>;
 		} else {
 			return (
 				<div>
 					{proposals.map((p, index) => (
-						<div key={index} className={styles.proposalCard}>
+						<div key={index}>
 							<p>Proposal ID: {p.proposalId}</p>
 							<p>Fake NFT to Purchase: {p.nftTokenId}</p>
 							<p>Deadline: {p.deadline.toString()}</p>
@@ -268,9 +260,9 @@ export default function Home() {
 							<p>Executed?: {p.executed.toString()}</p>
 							{p.deadline.getTime() > Date.now() &&
 							!p.executed ? (
-								<div className={styles.flex}>
+								<div>
 									<button
-										className={styles.button2}
+										style={{ minWidth: "240px" }}
 										onClick={() =>
 											voteOnProposal(p.proposalId, "YAY")
 										}
@@ -278,7 +270,7 @@ export default function Home() {
 										Vote YAY
 									</button>
 									<button
-										className={styles.button2}
+										style={{ minWidth: "240px" }}
 										onClick={() =>
 											voteOnProposal(p.proposalId, "NAY")
 										}
@@ -288,9 +280,9 @@ export default function Home() {
 								</div>
 							) : p.deadline.getTime() < Date.now() &&
 							  !p.executed ? (
-								<div className={styles.flex}>
+								<div>
 									<button
-										className={styles.button2}
+										style={{ minWidth: "240px" }}
 										onClick={() =>
 											executeProposal(p.proposalId)
 										}
@@ -302,9 +294,7 @@ export default function Home() {
 									</button>
 								</div>
 							) : (
-								<div className={styles.description}>
-									Proposal Executed
-								</div>
+								<div>Proposal Executed</div>
 							)}
 						</div>
 					))}
@@ -315,63 +305,22 @@ export default function Home() {
 
 	return (
 		<>
-			<Text
-				size={72}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $blue600 -20%, $pink600 50%",
-				}}
-			>
-				Welcome to DEVS DAO
-			</Text>
-			<Text
-				size={48}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $yellow600 -20%, $pink600 50%",
-				}}
-			>
-				Your NFT balance is {nftBalance}
-			</Text>
-			<Text
-				size={48}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $yellow600 -20%, $pink600 50%",
-				}}
-			>
-				Total number of proposals: {numberOfProposals}
-			</Text>
-			<Button
+			<h1>Welcome to DEVS DAO</h1>
+			<h2>Your NFT balance is {nftBalance}</h2>
+			<h2>Total number of proposals: {numberOfProposals}</h2>
+			<button
 				onClick={() => setSelectedTab("Create Proposal")}
-				flat
-				auto
-				rounded
-				color="gradient"
-				size="xl"
-				css={{ minWidth: "368px" }}
+				style={{ minWidth: "240px" }}
 			>
-				<Text
-					css={{ color: "inherit" }}
-					size={16}
-					weight="bold"
-					transform="uppercase"
-				>
-					Create Proposal
-				</Text>
-			</Button>
-			<Spacer />
-			<Button
-				flat
-				auto
-				rounded
-				color="gradient"
-				size="xl"
-				css={{ minWidth: "368px" }}
+				Create Proposal
+			</button>
+			<br />
+			<button
+				style={{ minWidth: "240px" }}
 				onClick={() => setSelectedTab("View Proposals")}
 			>
 				View Proposal
-			</Button>
+			</button>
 			{renderTabs()}
 		</>
 	);

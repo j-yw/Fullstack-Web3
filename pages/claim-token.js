@@ -1,11 +1,3 @@
-import {
-	Text,
-	Button,
-	Spacer,
-	Container,
-	Loading,
-	Input,
-} from "@nextui-org/react";
 import Web3Modal from "web3modal";
 import { BigNumber, Contract, providers, utils } from "ethers";
 import { useEffect, useRef, useState } from "react";
@@ -265,83 +257,48 @@ export default function Home() {
 
 	function renderButton() {
 		if (isLoading) {
-			return (
-				<Button rounded shadow bordered color="gradient">
-					<Loading />
-				</Button>
-			);
+			return <button style={{ minWidth: "240px" }}>loading...</button>;
 		}
 
 		if (isWalletConnected && isOwner) {
 			return (
-				<>
-					<Button
-						rounded
-						shadow
-						bordered
-						color="gradient"
-						onPress={withdraw}
-					>
-						Withdraw Coins
-					</Button>
-				</>
+				<button style={{ minWidth: "240px" }} onClick={withdraw}>
+					Withdraw Coins
+				</button>
 			);
 		}
 
 		if (tokensToBeClaimed > 0) {
 			return (
 				<>
-					<Text>{tokensToBeClaimed * 10} Tokens can be claimed</Text>
-					<Button
-						rounded
-						shadow
-						bordered
-						color="gradient"
-						onPress={claimTokens}
-					>
+					<h1>{tokensToBeClaimed * 10} Tokens can be claimed</h1>
+					<button style={{ minWidth: "240px" }} onClick={claimTokens}>
 						Claim Token
-					</Button>
+					</button>
 				</>
 			);
 		}
 
 		return (
 			<>
-				<Spacer />
-				<Input
-					size="md"
-					type="number"
-					bordered
-					rounded
-					labelPlaceholder="Amount of Tokens"
-					color="primary"
+				<input
+					style={{ minWidth: "220px" }}
 					onChange={(e) => {
 						if (tokenAmount) {
 							setTokenAmount(BigNumber.from(e.target.value));
 						}
 					}}
-				></Input>
-				<Spacer />
-				<Button
-					rounded
-					shadow
-					bordered
-					color="gradient"
-					onPress={() => mintToken(tokenAmount)}
+				></input>
+				<button
+					style={{ minWidth: "240px" }}
+					onClick={() => mintToken(tokenAmount)}
 				>
 					Mint Tokens
-				</Button>
-				<Spacer />
+				</button>
 				{utils.formatEther(contractBalance) !== "0.0" ? (
-					<Button
-						rounded
-						shadow
-						bordered
-						color="gradient"
-						onPress={withdraw}
-					>
+					<button style={{ minWidth: "240px" }} onClick={withdraw}>
 						Withdraw Coins
-					</Button>
+					</button>
 				) : null}
 			</>
 		);
@@ -350,59 +307,22 @@ export default function Home() {
 	return (
 		<>
 			{isWalletConnected ? (
-				<Container>
-					<Text
-						size={72}
-						weight="bold"
-						css={{
-							textGradient: "45deg, $blue600 -20%, $pink600 50%",
-						}}
-					>
-						You have {utils.formatEther(balanceOfToken)} Tokens
-					</Text>
-					<Text
-						size={36}
-						weight="bold"
-						css={{
-							textGradient:
-								"45deg, $yellow600 -20%, $pink600 50%",
-						}}
-					>
+				<>
+					<h1>You have {utils.formatEther(balanceOfToken)} Tokens</h1>
+					<h2>
 						Overall {utils.formatEther(tokensMinted)} of 10000 have
 						been minted
-					</Text>
+					</h2>
 					{utils.formatEther(contractBalance) !== "0.0" ? (
-						<Text
-							size={36}
-							weight="bold"
-							css={{
-								textGradient:
-									"45deg, $yellow600 -20%, $pink600 50%",
-							}}
-						>
+						<h2>
 							contract balance:{" "}
 							{utils.formatEther(contractBalance)}
-						</Text>
+						</h2>
 					) : null}
 					{renderButton()}
-				</Container>
+				</>
 			) : (
-				<Container
-					fluid
-					display="flex"
-					direction="column"
-					alignItems="center"
-				>
-					<Button
-						rounded
-						shadow
-						bordered
-						color="gradient"
-						onPress={connectWallet}
-					>
-						Connect Wallet
-					</Button>
-				</Container>
+				<></>
 			)}
 		</>
 	);

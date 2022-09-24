@@ -1,55 +1,48 @@
 import React from "react";
-import {
-	Navbar,
-	Text,
-	Button,
-	Switch,
-	Spacer,
-	Container,
-	useTheme,
-} from "@nextui-org/react";
-import { useTheme as useNextTheme } from "next-themes";
-import Link from "next/link";
-import { SunIcon, MoonIcon } from "./icons";
+import NextLink from "next/link";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export function Layout({ children }) {
-	const { setTheme } = useNextTheme();
-	const { isDark } = useTheme();
-
 	return (
-		<>
-			<Navbar isBordered variant="floating">
-				<Navbar.Brand>
-					<Text b color="inherit" hideIn="xs">
-						DAO DEMO
-					</Text>
-				</Navbar.Brand>
-				<Navbar.Content>
-					<Navbar.Item>
-						<Link href="/whitelist">Whitelist</Link>
-					</Navbar.Item>
-					<Navbar.Item href="/mint-nft">
-						<Link href="/mint-nft">Mint NFT</Link>
-					</Navbar.Item>
-					<Navbar.Item href="/claim-token">
-						<Link href="/claim-token">Claim Token</Link>
-					</Navbar.Item>
-					<Navbar.Item href="/vote">
-						<Link href="/vote">Vote here</Link>
-					</Navbar.Item>
-					<Switch
-						checked={isDark}
-						onChange={(e) =>
-							setTheme(e.target.checked ? "dark" : "light")
-						}
-						size="xl"
-						iconOn={<SunIcon filled />}
-						iconOff={<MoonIcon filled />}
-					/>
-				</Navbar.Content>
-			</Navbar>
-			<Spacer />
-			<Container>{children}</Container>
-		</>
+		<main style={{ maxWidth: "1280px", margin: "0 auto" }}>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+				}}
+			>
+				<NextLink href="/" passHref>
+					<a style={{ textDecoration: "none" }}>
+						<h1>Welcome to Devs DAO</h1>
+					</a>
+				</NextLink>
+				<ConnectButton />
+			</div>
+			<hr />
+			<div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+				<h2 style={{ marginTop: "8px" }}>
+					<NextLink href="/whitelist" prefetch>
+						Join Now
+					</NextLink>
+				</h2>
+				<h2 style={{ marginTop: "8px" }}>
+					<NextLink href="/mint-nft" prefetch>
+						Mint NFT
+					</NextLink>
+				</h2>
+				<h2 style={{ marginTop: "8px" }}>
+					<NextLink href="/claim-token" prefetch>
+						Claim Token
+					</NextLink>
+				</h2>
+				<h2 style={{ marginTop: "8px" }}>
+					<NextLink href="/vote" prefetch>
+						Proposals
+					</NextLink>
+				</h2>
+			</div>
+			{children}
+		</main>
 	);
 }
