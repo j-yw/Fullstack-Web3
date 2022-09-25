@@ -22,10 +22,8 @@ import {
 export default function ClaimTokenPage() {
 	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
 		useAccount();
-
 	const { data: signer } = useSigner();
 	const provider = useProvider();
-
 	const [tokensToBeClaimed, setTokensToBeClaimed] = useState(0);
 	const [tokenAmount, setTokenAmount] = useState(0);
 	const [isOwner, setIsOwner] = useState(false);
@@ -105,7 +103,7 @@ export default function ClaimTokenPage() {
 			watch: true,
 		});
 
-	const { data: contractOwner, isLoading: isOwnerLoading } = useContractRead({
+	const { data: contractOwner } = useContractRead({
 		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
 		contractInterface: DEVS_TOKEN_ABI,
 		functionName: "owner",
@@ -284,52 +282,38 @@ export default function ClaimTokenPage() {
 
 			<br />
 			<hr />
-			{isOwnerLoading ? (
-				<ThreeDots
-					height="72"
-					width="72"
-					radius="9"
-					color="#e5e5e5"
-					ariaLabel="three-dots-loading"
-					wrapperClassName=""
-					visible={true}
-				/>
-			) : (
+
+			{isOwner && (
 				<>
-					{isOwner && (
-						<>
-							<h2>Your are the owner of the contract</h2>
-							<button
-								style={{
-									display: "flex",
-									justifyContent: "center",
-									alignItems: "center",
-									minWidth: "240px",
-								}}
-								onClick={() => withdraw([])}
-							>
-								{isWithdrawing ? (
-									<ThreeDots
-										height="18"
-										width="18"
-										radius="9"
-										color="#e5e5e5"
-										ariaLabel="three-dots-loading"
-										wrapperClassName=""
-										visible={true}
-									/>
-								) : (
-									`
+					<h2>Your are the owner of the contract</h2>
+					<button
+						style={{
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+							minWidth: "240px",
+						}}
+						onClick={() => withdraw([])}
+					>
+						{isWithdrawing ? (
+							<ThreeDots
+								height="18"
+								width="18"
+								radius="9"
+								color="#e5e5e5"
+								ariaLabel="three-dots-loading"
+								wrapperClassName=""
+								visible={true}
+							/>
+						) : (
+							`
 							Withdraw ${
 								isContractBalanceSuccess &&
 								utils.formatEther(contractBalance.toString())
 							} Coins
 							`
-								)}
-							</button>
-							<></>
-						</>
-					)}
+						)}
+					</button>
 				</>
 			)}
 		</>

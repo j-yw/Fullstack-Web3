@@ -126,7 +126,7 @@ export default function VotePage() {
 			window.alert(error.data.message);
 		}
 	}
-
+	//BUG: NFT price is higher than the contract balance
 	async function executeProposal(proposalId) {
 		try {
 			const signer = await getProviderOrSigner(true);
@@ -284,7 +284,7 @@ export default function VotePage() {
 									<button
 										style={{ minWidth: "240px" }}
 										onClick={() =>
-											executeProposal(p.proposalId)
+											executeProposal([p.proposalId])
 										}
 									>
 										Execute Proposal{" "}
