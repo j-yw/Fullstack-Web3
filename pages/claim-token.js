@@ -28,7 +28,7 @@ export default function ClaimTokenPage() {
 	const zero = BigNumber.from(0);
 
 	const [tokensToBeClaimed, setTokensToBeClaimed] = useState(zero);
-	const [tokenAmount, setTokenAmount] = useState(zero);
+	const [tokenAmount, setTokenAmount] = useState(0);
 	const [isOwner, setIsOwner] = useState(false);
 	const [isTokenClaimLoading, setIsTokenClaimLoading] = useState(false);
 
@@ -251,9 +251,7 @@ export default function ClaimTokenPage() {
 				style={{ minWidth: "220px" }}
 				placeholder="number of tokens to mint"
 				onChange={(e) => {
-					setTokenAmount(
-						BigNumber.from(e.target.value ? e.target.value : 0)
-					);
+					setTokenAmount(e.target.value);
 				}}
 			></input>
 			<button
