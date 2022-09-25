@@ -252,7 +252,9 @@ export default function ClaimTokenPage() {
 				placeholder="number of tokens to mint"
 				onChange={(e) => {
 					if (tokenAmount) {
-						setTokenAmount(BigNumber.from(e.target.value));
+						setTokenAmount(
+							BigNumber.from(e.target.value ? e.target.value : 0)
+						);
 					}
 				}}
 			></input>
