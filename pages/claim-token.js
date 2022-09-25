@@ -251,11 +251,9 @@ export default function ClaimTokenPage() {
 				style={{ minWidth: "220px" }}
 				placeholder="number of tokens to mint"
 				onChange={(e) => {
-					if (tokenAmount) {
-						setTokenAmount(
-							BigNumber.from(e.target.value ? e.target.value : 0)
-						);
-					}
+					setTokenAmount(
+						BigNumber.from(e.target.value ? e.target.value : 0)
+					);
 				}}
 			></input>
 			<button
