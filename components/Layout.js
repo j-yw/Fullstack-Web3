@@ -33,7 +33,7 @@ export function Layout({ children }) {
 				</h2>
 				<h2 style={{ marginTop: "8px" }}>
 					<NextLink href="/claim-token" prefetch>
-						Claim Token
+						Claim Tokens
 					</NextLink>
 				</h2>
 				<h2 style={{ marginTop: "8px" }}>
