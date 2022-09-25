@@ -178,12 +178,13 @@ export default function ClaimTokenPage() {
 		<>
 			<h1>
 				Token balance:{" "}
-				{isTokenBalanceSuccess && utils.formatEther(tokenBalance)}
+				{isTokenBalanceSuccess &&
+					utils.formatEther(tokenBalance.toString())}
 			</h1>
 
 			<h1>
-				{utils.formatEther(tokenBalance)} of{" "}
-				{utils.formatEther(totalSupply)} have been minted
+				{utils.formatEther(tokenBalance.toString())} of{" "}
+				{utils.formatEther(totalSupply.toString())} have been minted
 			</h1>
 
 			<br />
@@ -313,7 +314,7 @@ export default function ClaimTokenPage() {
 							/>
 						) : (
 							`
-							Withdraw ${utils.formatEther(contractBalance)} Coins
+							Withdraw ${utils.formatEther(contractBalance.toString())} Coins
 							`
 						)}
 					</button>
