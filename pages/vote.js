@@ -284,7 +284,7 @@ export default function VotePage() {
 									<button
 										style={{ minWidth: "240px" }}
 										onClick={() =>
-											executeProposal([p.proposalId])
+											executeProposal(p.proposalId)
 										}
 									>
 										Execute Proposal{" "}
