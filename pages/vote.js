@@ -8,7 +8,7 @@ import {
 	DEVS_NFT_ABI,
 } from "../constants";
 
-export default function Home() {
+export default function VotePage() {
 	const [treasuryBalance, setTreasuryBalance] = useState("0");
 	const [numberOfProposals, setNumberOfProposals] = useState("0");
 	const [proposals, setProposals] = useState([]);

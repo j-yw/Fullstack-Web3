@@ -12,7 +12,7 @@ import {
 	useContractRead,
 } from "wagmi";
 
-export default function Home() {
+export default function MintNftPage() {
 	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
 		useAccount();
 	const { data: signer } = useSigner();

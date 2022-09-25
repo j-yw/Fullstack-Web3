@@ -19,7 +19,7 @@ import {
 	useContract,
 } from "wagmi";
 
-export default function Home() {
+export default function ClaimTokenPage() {
 	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
 		useAccount();
 

@@ -8,7 +8,7 @@ import {
 	useContractRead,
 } from "wagmi";
 
-export default function home() {
+export default function WhitelistPage() {
 	const { address, isConnected: isWalletConnected } = useAccount();
 	const { data: signer } = useSigner();
 
