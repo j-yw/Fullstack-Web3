@@ -80,12 +80,13 @@ export default function ClaimTokenPage() {
 		signerOrProvider: signer,
 	});
 
-	const { data: contractBalance } = useContractRead({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
-		functionName: "getContractBalance",
-		watch: true,
-	});
+	const { data: contractBalance, isSuccess: isContractBalanceSuccess } =
+		useContractRead({
+			addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
+			contractInterface: DEVS_TOKEN_ABI,
+			functionName: "getContractBalance",
+			watch: true,
+		});
 
 	const { data: tokenBalance, isSuccess: isTokenBalanceSuccess } =
 		useContractRead({
@@ -178,19 +179,19 @@ export default function ClaimTokenPage() {
 		<>
 			<h1>
 				Token balance:{" "}
-				{isTokenBalanceSuccess &&
-					utils.formatEther(tokenBalance.toString())}
+				{isTokenBalanceSuccess && utils.formatEther(tokenBalance)}
 			</h1>
 
 			<h1>
-				{utils.formatEther(tokenBalance.toString())} of{" "}
-				{utils.formatEther(totalSupply.toString())} have been minted
+				{isTokenBalanceSuccess && utils.formatEther(tokenBalance)} of{" "}
+				{isTokenTotalSupplySuccess && utils.formatEther(totalSupply)}{" "}
+				have been minted
 			</h1>
 
 			<br />
 			<hr />
 
-			<h2>{tokensToBeClaimed.toString()} NFT Available for claiming</h2>
+			<h2>{tokensToBeClaimed} NFT Available for claiming</h2>
 			<button
 				onClick={getTokensToBeClaimed}
 				style={{
@@ -314,7 +315,10 @@ export default function ClaimTokenPage() {
 							/>
 						) : (
 							`
-							Withdraw ${utils.formatEther(contractBalance.toString())} Coins
+							Withdraw ${
+								isContractBalanceSuccess &&
+								utils.formatEther(contractBalance.toString())
+							} Coins
 							`
 						)}
 					</button>
