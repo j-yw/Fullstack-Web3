@@ -1,4 +1,4 @@
-import { BigNumber, utils } from "ethers";
+import { utils } from "ethers";
 import { useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
 import {
@@ -25,9 +25,8 @@ export default function ClaimTokenPage() {
 
 	const { data: signer } = useSigner();
 	const provider = useProvider();
-	const zero = BigNumber.from(0);
 
-	const [tokensToBeClaimed, setTokensToBeClaimed] = useState(zero);
+	const [tokensToBeClaimed, setTokensToBeClaimed] = useState(0);
 	const [tokenAmount, setTokenAmount] = useState(0);
 	const [isOwner, setIsOwner] = useState(false);
 	const [isTokenClaimLoading, setIsTokenClaimLoading] = useState(false);
@@ -40,7 +39,7 @@ export default function ClaimTokenPage() {
 				setIsTokenClaimLoading(true);
 
 				if (balance.toNumber() === 0) {
-					setTokensToBeClaimed(zero);
+					setTokensToBeClaimed(0);
 				} else {
 					var amount = 0;
 					for (let i = 0; i < balance.toNumber(); i++) {
@@ -57,7 +56,7 @@ export default function ClaimTokenPage() {
 						}
 					}
 
-					setTokensToBeClaimed(BigNumber.from(amount));
+					setTokensToBeClaimed(amount);
 					setIsTokenClaimLoading(false);
 				}
 			} else {
