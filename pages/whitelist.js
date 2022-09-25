@@ -70,7 +70,6 @@ export default function home() {
 			<button
 				style={{
 					minWidth: "240px",
-					height: "48px",
 					display: "flex",
 					justifyContent: "center",
 					alignItems: "center",
