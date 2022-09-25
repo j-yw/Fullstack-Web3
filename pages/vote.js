@@ -303,6 +303,10 @@ export default function Home() {
 		}
 	}
 
+	if (!isWalletConnected) {
+		return <h1>Please Connect Your Wallet</h1>;
+	}
+
 	return (
 		<>
 			<h1>Welcome to DEVS DAO</h1>

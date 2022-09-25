@@ -1,4 +1,3 @@
-import Web3Modal from "web3modal";
 import { BigNumber, Contract, providers, utils } from "ethers";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -8,12 +7,27 @@ import {
 	DEVS_NFT_ABI,
 } from "../constants";
 
-export default function Home() {
-	const web3ModalRef = useRef();
+import {
+	useSigner,
+	useAccount,
+	usePrepareContractWrite,
+	useContractWrite,
+	useContractRead,
+	useProvider,
+	useContract,
+} from "wagmi";
 
+export default function Home() {
+	const {
+		address: connectedWalletAddress,
+		isConnected: isWalletConnected,
+		isDisconnected: isWalletDisconnected,
+	} = useAccount();
+
+	const { data: signer } = useSigner();
+	const provider = useProvider();
 	const zero = BigNumber.from(0);
 
-	const [isWalletConnected, setIsWalletConnected] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [tokensToBeClaimed, setTokensToBeClaimed] = useState(zero);
 	const [balanceOfToken, setBalancesOfToken] = useState(zero);
@@ -22,24 +36,21 @@ export default function Home() {
 	const [isOwner, setIsOwner] = useState(false);
 	const [contractBalance, setContractBalance] = useState(zero);
 
+	const nftContract = useContract({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		signerOrProvider: provider,
+	});
+
+	const tokenContract = useContract({
+		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
+		contractInterface: DEVS_TOKEN_ABI,
+		signerOrProvider: signer,
+	});
+
 	async function getTokensToBeClaimed() {
 		try {
-			const provider = await getProviderOrSigner();
-			const nftContract = new Contract(
-				DEVS_NFT_CONTRACT_ADDRESS,
-				DEVS_NFT_ABI,
-				provider
-			);
-
-			const tokenContract = new Contract(
-				DEVS_TOKEN_CONTRACT_ADDRESS,
-				DEVS_TOKEN_ABI,
-				provider
-			);
-
-			const signer = await getProviderOrSigner(true);
-			const address = signer.getAddress();
-			const balance = await nftContract.balanceOf(address);
+			const balance = await nftContract.balanceOf(connectedWalletAddress);
 
 			if (balance.toNumber() === 0) {
 				setTokensToBeClaimed(zero);
@@ -47,7 +58,7 @@ export default function Home() {
 				var amount = 0;
 				for (let i = 0; i < balance.toNumber(); i++) {
 					const tokenId = await nftContract.tokenOfOwnerByIndex(
-						address,
+						connectedWalletAddress,
 						i
 					);
 					const claimed = await tokenContract.tokenIdsClaimed(
@@ -68,16 +79,7 @@ export default function Home() {
 
 	async function getBalanceOfContract() {
 		try {
-			const provider = await getProviderOrSigner();
-
-			const tokenContract = new Contract(
-				DEVS_TOKEN_CONTRACT_ADDRESS,
-				DEVS_TOKEN_ABI,
-				provider
-			);
-
 			const balance = await tokenContract.getContractBalance();
-
 			setContractBalance(balance);
 		} catch (error) {
 			console.error(error);
@@ -87,17 +89,9 @@ export default function Home() {
 
 	async function getBalanceOfTokens() {
 		try {
-			const provider = await getProviderOrSigner();
-
-			const tokenContract = new Contract(
-				DEVS_TOKEN_CONTRACT_ADDRESS,
-				DEVS_TOKEN_ABI,
-				provider
+			const balance = await tokenContract.balanceOf(
+				connectedWalletAddress
 			);
-			const signer = await getProviderOrSigner(true);
-			const address = await signer.getAddress();
-			const balance = await tokenContract.balanceOf(address);
-
 			setBalancesOfToken(balance);
 		} catch (error) {
 			console.error(error);
@@ -107,12 +101,6 @@ export default function Home() {
 
 	async function mintToken(amount) {
 		try {
-			const signer = await getProviderOrSigner(true);
-			const tokenContract = new Contract(
-				DEVS_TOKEN_CONTRACT_ADDRESS,
-				DEVS_TOKEN_ABI,
-				signer
-			);
 			const value = 0.001 * amount;
 			const tx = await tokenContract.mint(amount, {
 				value: utils.parseEther(value.toString()),
@@ -133,13 +121,6 @@ export default function Home() {
 
 	async function claimTokens() {
 		try {
-			const signer = await getProviderOrSigner(true);
-			const tokenContract = new Contract(
-				DEVS_TOKEN_CONTRACT_ADDRESS,
-				DEVS_TOKEN_ABI,
-				signer
-			);
-
 			const tx = await tokenContract.claim();
 			setIsLoading(true);
 			await tx.wait();
@@ -157,12 +138,6 @@ export default function Home() {
 
 	async function getTotalTokensMinted() {
 		try {
-			const provider = await getProviderOrSigner();
-			const tokenContract = new Contract(
-				DEVS_TOKEN_CONTRACT_ADDRESS,
-				DEVS_TOKEN_ABI,
-				provider
-			);
 			const _tokensMinted = await tokenContract.totalSupply();
 			setTokensMinted(_tokensMinted);
 		} catch (error) {
@@ -172,17 +147,8 @@ export default function Home() {
 
 	async function getOwner() {
 		try {
-			const provider = await getProviderOrSigner();
-			const tokenContract = new Contract(
-				DEVS_TOKEN_CONTRACT_ADDRESS,
-				DEVS_TOKEN_ABI,
-				provider
-			);
 			const _owner = await tokenContract.owner();
-			const signer = await getProviderOrSigner(true);
-			const address = await signer.getAddress();
-
-			if (address.toLowerCase() === _owner.toLowerCase()) {
+			if (connectedWalletAddress.toLowerCase() === _owner.toLowerCase()) {
 				setIsOwner(true);
 			}
 		} catch (error) {
@@ -192,14 +158,6 @@ export default function Home() {
 
 	async function withdraw() {
 		try {
-			const signer = await getProviderOrSigner(true);
-
-			const tokenContract = new Contract(
-				DEVS_TOKEN_CONTRACT_ADDRESS,
-				DEVS_TOKEN_ABI,
-				signer
-			);
-
 			const tx = await tokenContract.withdraw();
 			setIsLoading(true);
 			await tx.wait();
@@ -210,50 +168,13 @@ export default function Home() {
 		}
 	}
 
-	async function connectWallet() {
-		try {
-			await getProviderOrSigner();
-			setIsWalletConnected(true);
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	async function getProviderOrSigner(needSigner = false) {
-		const provider = await web3ModalRef.current.connect();
-		const web3Provider = new providers.Web3Provider(provider);
-		const { chainId } = await web3Provider.getNetwork();
-
-		if (chainId !== 5) {
-			window.alert("Change the network to Goerli");
-			throw new Error(
-				"Using the wrong network, Change the network to Goerli"
-			);
-		}
-
-		if (needSigner) {
-			const signer = web3Provider.getSigner();
-			return signer;
-		}
-
-		return web3Provider;
-	}
-
-	useEffect(() => {
-		if (!isWalletConnected) {
-			web3ModalRef.current = new Web3Modal({
-				network: "goerli",
-				providerOptions: {},
-				disableInjectedProvider: false,
-			});
-			connectWallet();
-			getTotalTokensMinted();
-			getBalanceOfTokens();
-			getBalanceOfContract();
-			getTokensToBeClaimed();
-			// withdraw();
-		}
-	}, [isWalletConnected, contractBalance, balanceOfToken]);
+	// useEffect(() => {
+	// 	getTotalTokensMinted();
+	// 	getBalanceOfTokens();
+	// 	getBalanceOfContract();
+	// 	getTokensToBeClaimed();
+	// 	// withdraw();
+	// }, [isWalletConnected, contractBalance, balanceOfToken]);
 
 	function renderButton() {
 		if (isLoading) {
@@ -302,6 +223,10 @@ export default function Home() {
 				) : null}
 			</>
 		);
+	}
+
+	if (!isWalletConnected) {
+		return <h1>Please Connect Your Wallet</h1>;
 	}
 
 	return (

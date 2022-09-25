@@ -13,11 +13,12 @@ import {
 } from "wagmi";
 
 export default function Home() {
+	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
+		useAccount();
+	const { data: signer } = useSigner();
+
 	const [isOwner, setIsOwner] = useState(false);
 	const [isPresaleEnded, setIsPresaleEnded] = useState(false);
-
-	const { address: connectedWalletAddress } = useAccount();
-	const { data: signer } = useSigner();
 
 	// Contract Write prepare configs
 	const { config: presaleConfig } = usePrepareContractWrite({
@@ -176,6 +177,10 @@ export default function Home() {
 				</button>
 			);
 		}
+	}
+
+	if (!isWalletConnected) {
+		return <h1>Please Connect Your Wallet</h1>;
 	}
 
 	return (
