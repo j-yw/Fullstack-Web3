@@ -185,13 +185,15 @@ export default function MintNftPage() {
 
 	return (
 		<>
-			<h1>Mint Your NFTs Now</h1>
+			<h1>Get your NFTs</h1>
 			<h1>{numberOfTokensMinted?.toString()} of 20 have been minted</h1>
-			<h1>
+			<br />
+			<hr />
+			<h2>
 				{isPresaleStarted && !isPresaleEnded
-					? "Your Wallet is whitelisted, Mint your NFT before the public has access"
+					? "Your are whitelisted, join presale now"
 					: "Mint your NFT Now"}
-			</h1>
+			</h2>
 			{renderButton()}
 		</>
 	);

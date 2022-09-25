@@ -59,14 +59,17 @@ export default function WhitelistPage() {
 		<>
 			<h1>Welcome to DEVS NFT</h1>
 			<h1>
-				Whitelisted Accounts{" "}
+				Whitelisted Accounts:{" "}
 				<strong>{numberOfWhitelistedAddresses}</strong>
 			</h1>
-			<h1>
+			<br />
+			<hr />
+
+			<h2>
 				{isAddressWhitelisted
 					? `Thank you for Joining`
 					: "Join the whitelist now"}
-			</h1>
+			</h2>
 			<button
 				style={{
 					minWidth: "240px",

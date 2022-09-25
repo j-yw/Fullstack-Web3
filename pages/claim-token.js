@@ -177,8 +177,6 @@ export default function ClaimTokenPage() {
 
 	return (
 		<>
-			<h1>{tokensToBeClaimed.toString()} NFT Available for claiming</h1>
-
 			<h1>
 				Token balance:{" "}
 				{isTokenBalanceSuccess && utils.formatEther(tokenBalance)}
@@ -189,6 +187,10 @@ export default function ClaimTokenPage() {
 				{utils.formatEther(totalSupply)} have been minted
 			</h1>
 
+			<br />
+			<hr />
+
+			<h2>{tokensToBeClaimed.toString()} NFT Available for claiming</h2>
 			<button
 				onClick={getTokensToBeClaimed}
 				style={{
@@ -241,8 +243,10 @@ export default function ClaimTokenPage() {
 				</button>
 			)}
 
-			<h1>You can also mint tokens by spending ETH</h1>
+			<br />
+			<hr />
 
+			<h2>You can also mint tokens by spending ETH</h2>
 			<input
 				style={{ minWidth: "220px" }}
 				placeholder="number of tokens to mint"
@@ -252,7 +256,6 @@ export default function ClaimTokenPage() {
 					}
 				}}
 			></input>
-
 			<button
 				style={{
 					display: "flex",
@@ -277,6 +280,8 @@ export default function ClaimTokenPage() {
 				)}
 			</button>
 
+			<br />
+			<hr />
 			{isOwnerLoading ? (
 				<ThreeDots
 					height="72"
@@ -289,7 +294,7 @@ export default function ClaimTokenPage() {
 				/>
 			) : (
 				<>
-					<h1>Your are the owner of the contract</h1>
+					<h2>Your are the owner of the contract</h2>
 					<button
 						style={{
 							display: "flex",
