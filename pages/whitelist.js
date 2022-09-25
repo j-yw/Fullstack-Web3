@@ -9,7 +9,7 @@ import {
 } from "wagmi";
 
 export default function home() {
-	const { address, isDisconnected } = useAccount();
+	const { address } = useAccount();
 	const { data: signer } = useSigner();
 
 	// prepare config will cause contract write to be undefined when switching wallets in metamask

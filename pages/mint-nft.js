@@ -1,5 +1,6 @@
 import { utils } from "ethers";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { ThreeDots } from "react-loader-spinner";
 import { DEVS_NFT_ABI, DEVS_NFT_CONTRACT_ADDRESS } from "../constants";
 
 import {
@@ -9,183 +10,141 @@ import {
 	useContractWrite,
 	useWaitForTransaction,
 	useContractRead,
-	useContract,
 } from "wagmi";
 
 export default function Home() {
-	const [isPresaleStarted, setIsPresaleStarted] = useState(false);
-	const [isPresaleEnded, setIsPresaleEnded] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
 	const [isOwner, setIsOwner] = useState(false);
-	const [isTokenIdsMinted, setIsTokenIdsMinted] = useState("0");
+	const [isPresaleEnded, setIsPresaleEnded] = useState(false);
 
+	const { address: connectedWalletAddress } = useAccount();
 	const { data: signer } = useSigner();
 
-	const {
-		address,
-		isConnected: isWalletConnected,
-		isDisconnected: isWalletDisconnected,
-	} = useAccount();
-
-	const nftContract = useContract({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: signer,
-	});
-
-	const { config: nftContractConfig } = usePrepareContractWrite({
+	// Contract Write prepare configs
+	const { config: presaleConfig } = usePrepareContractWrite({
 		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
 		contractInterface: DEVS_NFT_ABI,
 		signerOrProvider: signer,
 		functionName: "presaleMint",
 		args: [{ value: utils.parseEther("0.01") }],
+	});
+
+	const { config: publicMintConfig } = usePrepareContractWrite({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		signerOrProvider: signer,
+		functionName: "mint",
+		args: [{ value: utils.parseEther("0.02") }],
+	});
+
+	const { config: startPresaleConfig } = usePrepareContractWrite({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		signerOrProvider: signer,
+		functionName: "startPresale",
+	});
+
+	//Contract Write Functions
+	const { data: presaleMintData, write: presaleMint } =
+		useContractWrite(presaleConfig);
+
+	const { isError: isPresaleError, isLoading: isPresaleMintLoading } =
+		useWaitForTransaction({
+			hash: presaleMintData?.hash,
+			wait: presaleMintData?.wait,
+		});
+
+	const { data: publicMintData, write: publicMint } =
+		useContractWrite(publicMintConfig);
+
+	const { isError: isPublicMintError, isLoading: isPublicMintLoading } =
+		useWaitForTransaction({
+			hash: publicMintData?.hash,
+			wait: publicMintData?.wait,
+		});
+
+	const { data: startPresaleData, write: startPresale } =
+		useContractWrite(startPresaleConfig);
+
+	const { isError: isStartPresaleError, isLoading: isStartPresaleLoading } =
+		useWaitForTransaction({
+			hash: startPresaleData?.hash,
+			wait: startPresaleData?.wait,
+		});
+
+	//Contract Read Functions
+	const { data: isPresaleStarted } = useContractRead({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		functionName: "presaleStarted",
+	});
+
+	const { data } = useContractRead({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		functionName: "presaleEnded",
+		enabled: isPresaleStarted,
 		onSuccess(data) {
-			console.log(
-				`🍀 \n | 🍄 file: mint-nft.js \n | 🍄 line 44 \n | 🍄 onSuccess \n | 🍄 data`,
-				data
-			);
+			const presaleEnded = data.lt(Math.floor(Date.now() / 1000));
+			setIsPresaleEnded(presaleEnded);
 		},
 	});
 
-	const { data: presaleMintData, write: presaleMint } =
-		useContractWrite(nftContractConfig);
-
-	console.log(
-		`🍀 \n | 🍄 file: mint-nft.js \n | 🍄 line 51 \n | 🍄 Home \n | 🍄 presaleMint`,
-		presaleMint
-	);
-
-	const { isError, isLoading: isPresaleMintLoading } = useWaitForTransaction({
-		hash: presaleMintData?.hash,
-		wait: presaleMintData?.wait,
-	});
-
-	async function publicMint() {
-		try {
-			const tx = await nftContract.mint({
-				value: utils.parseEther("0.02"),
-			});
-
-			setIsLoading(true);
-			await tx.wait();
-			setIsLoading(false);
-
-			window.alert("NFT Minted");
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	async function startPresale() {
-		try {
-			const tx = await nftContract.startPresale();
-
-			setIsLoading(true);
-
-			await tx.wait();
-
-			setIsLoading(false);
-
-			await checkIfPresaleStarted();
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	async function checkIfPresaleStarted() {
-		try {
-			const _presaleStarted = await nftContract.presaleStarted();
-
-			if (!_presaleStarted) {
-				await getOwner();
-			}
-
-			setIsPresaleStarted(_presaleStarted);
-
-			return _presaleStarted;
-		} catch (error) {
-			console.error(error);
-			return false;
-		}
-	}
-
-	async function checkIfPresaleEnded() {
-		try {
-			const _presaleEnded = await nftContract.presaleEnded();
-			const hasEnded = _presaleEnded.lt(Math.floor(Date.now() / 1000));
-
-			if (hasEnded) {
-				setIsPresaleEnded(true);
-			} else {
-				setIsPresaleEnded(false);
-			}
-
-			return hasEnded;
-		} catch (error) {
-			console.error(error);
-			return false;
-		}
-	}
-
-	async function getOwner() {
-		try {
-			const _owner = await nftContract.owner();
-			const signer = await getProviderOrSigner(true);
-			const address = await signer.getAddress();
-			if (address.toLowerCase() === _owner.toLowerCase()) {
+	const { data: contractOwner } = useContractRead({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		functionName: "owner",
+		async onSuccess(contractOwner) {
+			if (
+				connectedWalletAddress.toLowerCase() ===
+				contractOwner.toLowerCase()
+			) {
 				setIsOwner(true);
 			}
-		} catch (error) {
-			console.error(error);
-		}
-	}
+		},
+	});
 
-	async function getTokenIdsMinted() {
-		try {
-			const _tokenIds = await nftContract.tokenIds();
-			setIsTokenIdsMinted(_tokenIds.toString());
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	useEffect(() => {
-		const _presaleStarted = checkIfPresaleStarted();
-
-		if (_presaleStarted) {
-			checkIfPresaleEnded();
-		}
-
-		getTokenIdsMinted();
-
-		// const presaleEndedInterval = setInterval(async () => {
-		// 	const _presaleStarted = await checkIfPresaleStarted();
-		// 	if (!_presaleStarted) {
-		// 		const _presaleEnded = await checkIfPresaleEnded();
-		// 		if (!_presaleEnded) {
-		// 			clearInterval(presaleEndedInterval);
-		// 		}
-		// 	}
-		// }, 5 * 1000);
-
-		// setInterval(async () => {
-		// 	await getTokenIdsMinted();
-		// }, 5 * 1000);
-	}, [address, isWalletConnected, signer]);
+	const { data: numberOfTokensMinted } = useContractRead({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		functionName: "tokenIds",
+		watch: true,
+	});
 
 	function renderButton() {
-		if (!isWalletConnected) {
+		if (
+			isPresaleMintLoading ||
+			isPublicMintLoading ||
+			isStartPresaleLoading
+		) {
 			return (
-				<button style={{ minWidth: "240px" }}>Connect Wallet</button>
+				<button
+					style={{
+						minWidth: "240px",
+						height: "48px",
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					<ThreeDots
+						height="18"
+						width="18"
+						radius="9"
+						color="#e5e5e5"
+						ariaLabel="three-dots-loading"
+						wrapperClassName=""
+						visible={true}
+					/>
+				</button>
 			);
 		}
 
-		if (isPresaleMintLoading) {
-			return <button style={{ minWidth: "240px" }}>Loading...</button>;
-		}
-
 		if (isOwner && !isPresaleStarted) {
-			return <button style={{ minWidth: "240px" }}>Start Presale</button>;
+			return (
+				<button onClick={startPresale} style={{ minWidth: "240px" }}>
+					Start Presale
+				</button>
+			);
 		}
 
 		if (!isPresaleStarted) {
@@ -197,7 +156,6 @@ export default function Home() {
 		if (isPresaleStarted && !isPresaleEnded) {
 			return (
 				<>
-					<h1>Your address is whitelisted for presale</h1>
 					<button
 						style={{ minWidth: "240px" }}
 						onClick={() => presaleMint()}
@@ -210,7 +168,10 @@ export default function Home() {
 
 		if (isPresaleStarted && isPresaleEnded) {
 			return (
-				<button style={{ minWidth: "240px" }} onClick={publicMint}>
+				<button
+					style={{ minWidth: "240px" }}
+					onClick={() => publicMint()}
+				>
 					Public Mint
 				</button>
 			);
@@ -219,9 +180,13 @@ export default function Home() {
 
 	return (
 		<>
-			<h1>Welcome to Devs NFT</h1>
-			<h2>Mint Your NFTs Now</h2>
-			<h2>{isTokenIdsMinted} of 20 have been minted</h2>
+			<h1>Mint Your NFTs Now</h1>
+			<h1>{numberOfTokensMinted?.toString()} of 20 have been minted</h1>
+			<h1>
+				{isPresaleStarted && !isPresaleEnded
+					? "Your Wallet is whitelisted, Mint your NFT before the public has access"
+					: "Mint your NFT Now"}
+			</h1>
 			{renderButton()}
 		</>
 	);
