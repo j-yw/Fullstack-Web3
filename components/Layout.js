@@ -14,7 +14,7 @@ export function Layout({ children }) {
 			>
 				<NextLink href="/" passHref>
 					<a style={{ textDecoration: "none" }}>
-						<h1>Welcome to Devs DAO</h1>
+						<h1>Devs DAO</h1>
 					</a>
 				</NextLink>
 				<ConnectButton />
@@ -22,13 +22,8 @@ export function Layout({ children }) {
 			<hr />
 			<div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
 				<h2 style={{ marginTop: "8px" }}>
-					<NextLink href="/whitelist" prefetch>
-						Join Now
-					</NextLink>
-				</h2>
-				<h2 style={{ marginTop: "8px" }}>
 					<NextLink href="/mint-nft" prefetch>
-						Mint NFT
+						Get NFTs
 					</NextLink>
 				</h2>
 				<h2 style={{ marginTop: "8px" }}>

@@ -1,7 +1,12 @@
 import { utils } from "ethers";
 import { useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
-import { DEVS_NFT_ABI, DEVS_NFT_CONTRACT_ADDRESS } from "../constants";
+import {
+	DEVS_NFT_ABI,
+	DEVS_NFT_CONTRACT_ADDRESS,
+	WHITELIST_CONTRACT_ADDRESS,
+	WHITELIST_ABI,
+} from "../constants";
 
 import {
 	useSigner,
@@ -72,7 +77,53 @@ export default function MintNftPage() {
 			wait: startPresaleData?.wait,
 		});
 
+	// prepare config will cause contract write to be undefined when switching wallets in metamask
+	const { config: whitelistContractConfig } = usePrepareContractWrite({
+		addressOrName: WHITELIST_CONTRACT_ADDRESS,
+		contractInterface: WHITELIST_ABI,
+		signerOrProvider: signer,
+		functionName: "addAddresssToWhitelist",
+		enabled: false,
+	});
+
+	const { data: whitelistData, write: addToWhitelist } = useContractWrite({
+		addressOrName: WHITELIST_CONTRACT_ADDRESS,
+		contractInterface: WHITELIST_ABI,
+		signerOrProvider: signer,
+		functionName: "addAddresssToWhitelist",
+		enabled: false,
+	});
+
+	const {
+		isLoading: isJoiningWhitelist,
+		isSuccess: isJoiningWhitelistSuccess,
+	} = useWaitForTransaction({
+		hash: whitelistData?.hash,
+		wait: whitelistData?.wait,
+	});
+
 	//Contract Read Functions
+	const { data: numberOfWhitelistedAddresses } = useContractRead({
+		addressOrName: WHITELIST_CONTRACT_ADDRESS,
+		contractInterface: WHITELIST_ABI,
+		functionName: "numAddressesWhitelisted",
+		enabled: connectedWalletAddress || isJoiningWhitelistSuccess,
+		cacheTime: 2_000,
+	});
+
+	const { data: isAddressWhitelisted, isLoading: isWhitelistedLoading } =
+		useContractRead({
+			addressOrName: WHITELIST_CONTRACT_ADDRESS,
+			contractInterface: WHITELIST_ABI,
+			functionName: "whitelistedAddresses",
+			args: [connectedWalletAddress],
+			enabled: connectedWalletAddress,
+			cacheTime: 2_000,
+			onSuccess(data) {
+				console.log("isWhitelisted", data);
+			},
+		});
+
 	const { data: isPresaleStarted } = useContractRead({
 		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
 		contractInterface: DEVS_NFT_ABI,
@@ -140,6 +191,34 @@ export default function MintNftPage() {
 			);
 		}
 
+		if (!isAddressWhitelisted) {
+			return (
+				<button
+					style={{
+						minWidth: "240px",
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+					disabled={isAddressWhitelisted}
+					onClick={() => addToWhitelist([])}
+				>
+					{isJoiningWhitelist || isWhitelistedLoading ? (
+						<ThreeDots
+							height="18"
+							width="18"
+							radius="9"
+							color="#e5e5e5"
+							ariaLabel="three-dots-loading"
+							wrapperClassName=""
+							visible={true}
+						/>
+					) : (
+						"Join Whitelist"
+					)}
+				</button>
+			);
+		}
 		if (isOwner && !isPresaleStarted) {
 			return (
 				<button onClick={startPresale} style={{ minWidth: "240px" }}>
@@ -185,15 +264,22 @@ export default function MintNftPage() {
 
 	return (
 		<>
-			<h1>Get your NFTs</h1>
+			<h1>Welcome! Get your NFTs now</h1>
+			<h1>
+				Whitelisted Accounts:{" "}
+				<strong>{numberOfWhitelistedAddresses}</strong>
+			</h1>
 			<h1>{numberOfTokensMinted?.toString()} of 20 have been minted</h1>
 			<br />
 			<hr />
 			<h2>
-				{isPresaleStarted && !isPresaleEnded
+				{!isAddressWhitelisted
+					? "Join the whitelist, we are in presale"
+					: isPresaleStarted && !isPresaleEnded
 					? "Your are whitelisted, join presale now"
 					: "Mint your NFT Now"}
 			</h2>
+			<br />
 			{renderButton()}
 		</>
 	);
