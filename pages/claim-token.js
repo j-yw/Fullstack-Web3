@@ -30,6 +30,18 @@ export default function ClaimTokenPage() {
 	const [isTokenClaimLoading, setIsTokenClaimLoading] = useState(false);
 
 	//TODO: Refactor
+	const nftContract = useContract({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		signerOrProvider: provider,
+	});
+
+	const tokenContract = useContract({
+		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
+		contractInterface: DEVS_TOKEN_ABI,
+		signerOrProvider: signer,
+	});
+
 	async function getTokensToBeClaimed() {
 		try {
 			if (isNftBalanceSuccess) {
@@ -66,18 +78,7 @@ export default function ClaimTokenPage() {
 		}
 	}
 
-	const nftContract = useContract({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: provider,
-	});
-
-	const tokenContract = useContract({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
-		signerOrProvider: signer,
-	});
-
+	// Contract Read Functions
 	const { data: contractBalance, isSuccess: isContractBalanceSuccess } =
 		useContractRead({
 			addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
@@ -107,7 +108,7 @@ export default function ClaimTokenPage() {
 		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
 		contractInterface: DEVS_TOKEN_ABI,
 		functionName: "owner",
-		async onSuccess(contractOwner) {
+		onSuccess(contractOwner) {
 			if (
 				connectedWalletAddress.toLowerCase() ===
 				contractOwner.toLowerCase()
@@ -125,6 +126,7 @@ export default function ClaimTokenPage() {
 			args: [connectedWalletAddress],
 		});
 
+	//Contract Write Functions
 	const { data: mintData, write: mintToken } = useContractWrite({
 		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
 		contractInterface: DEVS_TOKEN_ABI,
@@ -172,6 +174,7 @@ export default function ClaimTokenPage() {
 			wait: withdrawData?.wait,
 		});
 
+	//Render Markup
 	if (!isWalletConnected) {
 		return <h1>Please Connect Your Wallet</h1>;
 	}

@@ -21,7 +21,6 @@ export default function MintNftPage() {
 	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
 		useAccount();
 	const { data: signer } = useSigner();
-
 	const [isOwner, setIsOwner] = useState(false);
 	const [isPresaleEnded, setIsPresaleEnded] = useState(false);
 
@@ -174,6 +173,7 @@ export default function MintNftPage() {
 		watch: true,
 	});
 
+	//Render Markup
 	function renderButton() {
 		if (
 			isPresaleMintLoading ||
