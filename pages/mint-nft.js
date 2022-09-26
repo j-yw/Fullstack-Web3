@@ -102,6 +102,18 @@ export default function MintNftPage() {
 		wait: whitelistData?.wait,
 	});
 
+	const { data: withdrawData, write: withdraw } = useContractWrite({
+		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
+		contractInterface: DEVS_NFT_ABI,
+		functionName: "withdraw",
+	});
+
+	const { isError: isWithdrawError, isLoading: isWithdrawing } =
+		useWaitForTransaction({
+			hash: withdrawData?.hash,
+			wait: withdrawData?.wait,
+		});
+
 	//Contract Read Functions
 	const { data: numberOfWhitelistedAddresses } = useContractRead({
 		addressOrName: WHITELIST_CONTRACT_ADDRESS,
@@ -145,7 +157,7 @@ export default function MintNftPage() {
 		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
 		contractInterface: DEVS_NFT_ABI,
 		functionName: "owner",
-		async onSuccess(contractOwner) {
+		onSuccess(contractOwner) {
 			if (
 				connectedWalletAddress.toLowerCase() ===
 				contractOwner.toLowerCase()
@@ -279,8 +291,36 @@ export default function MintNftPage() {
 					? "Your are whitelisted, join presale now"
 					: "Mint your NFT Now"}
 			</h2>
-			<br />
 			{renderButton()}
+			<hr />
+			{isOwner && (
+				<>
+					<h2>Your are the owner of the contract</h2>
+					<button
+						style={{
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+							minWidth: "240px",
+						}}
+						onClick={() => withdraw([])}
+					>
+						{isWithdrawing ? (
+							<ThreeDots
+								height="18"
+								width="18"
+								radius="9"
+								color="#e5e5e5"
+								ariaLabel="three-dots-loading"
+								wrapperClassName=""
+								visible={true}
+							/>
+						) : (
+							"Withdraw"
+						)}
+					</button>
+				</>
+			)}
 		</>
 	);
 }
