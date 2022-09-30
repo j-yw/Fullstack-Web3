@@ -8,7 +8,6 @@ import {
 	DEVS_NFT_CONTRACT_ADDRESS,
 	DEVS_NFT_ABI,
 } from "../constants";
-import { Text, Button, Spacer } from "@nextui-org/react";
 
 export default function Home() {
 	const [treasuryBalance, setTreasuryBalance] = useState("0");
@@ -212,6 +211,10 @@ export default function Home() {
 	}
 
 	function renderCreateProposalTab() {
+		if (!isWalletConnected) {
+			return <button onClick={connectWallet}>Connect Wallet</button>;
+		}
+
 		if (isLoading) {
 			return (
 				<>
@@ -243,6 +246,10 @@ export default function Home() {
 	}
 
 	function renderViewProposalsTab() {
+		if (!isWalletConnected) {
+			return <button onClick={connectWallet}>Connect Wallet</button>;
+		}
+
 		if (isLoading) {
 			return (
 				<div className={styles.description}>
@@ -315,63 +322,16 @@ export default function Home() {
 
 	return (
 		<>
-			<Text
-				size={72}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $blue600 -20%, $pink600 50%",
-				}}
-			>
-				Welcome to DEVS DAO
-			</Text>
-			<Text
-				size={48}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $yellow600 -20%, $pink600 50%",
-				}}
-			>
-				Your NFT balance is {nftBalance}
-			</Text>
-			<Text
-				size={48}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $yellow600 -20%, $pink600 50%",
-				}}
-			>
-				Total number of proposals: {numberOfProposals}
-			</Text>
-			<Button
-				onClick={() => setSelectedTab("Create Proposal")}
-				flat
-				auto
-				rounded
-				color="gradient"
-				size="xl"
-				css={{ minWidth: "368px" }}
-			>
-				<Text
-					css={{ color: "inherit" }}
-					size={16}
-					weight="bold"
-					transform="uppercase"
-				>
-					Create Proposal
-				</Text>
-			</Button>
-			<Spacer />
-			<Button
-				flat
-				auto
-				rounded
-				color="gradient"
-				size="xl"
-				css={{ minWidth: "368px" }}
-				onClick={() => setSelectedTab("View Proposals")}
-			>
+			<p>Welcome to DEVS DAO</p>
+			<p>Your NFT balance is {nftBalance}</p>
+			<p>Total number of proposals: {numberOfProposals}</p>
+			<button onClick={() => setSelectedTab("Create Proposal")}>
+				<p>Create Proposal</p>
+			</button>
+			<br />
+			<button onClick={() => setSelectedTab("View Proposals")}>
 				View Proposal
-			</Button>
+			</button>
 			{renderTabs()}
 		</>
 	);

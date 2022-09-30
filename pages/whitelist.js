@@ -2,7 +2,6 @@ import Web3Modal from "web3modal";
 import { providers, Contract } from "ethers";
 import { useEffect, useState, useRef } from "react";
 import { WHITELIST_CONTRACT_ADDRESS, WHITELIST_ABI } from "../constants";
-import { Text, Button, Loading, Spacer } from "@nextui-org/react";
 
 export default function home() {
 	const [isWalletConnected, setIsWalletConnected] = useState(false);
@@ -110,104 +109,34 @@ export default function home() {
 		if (isWalletConnected) {
 			if (isJoinedWhitelist) {
 				return (
-					<Button
-						flat
-						auto
-						rounded
-						color="gradient"
-						size="xl"
-						css={{ minWidth: "368px" }}
-					>
-						<Text size={16} weight="bold" transform="uppercase">
-							Thanks for joining the whitelist
-						</Text>
-					</Button>
+					<button>
+						<p>Thanks for joining the whitelist</p>
+					</button>
 				);
 			} else if (isLoading) {
-				return (
-					<Button
-						flat
-						auto
-						rounded
-						color="gradient"
-						size="xl"
-						css={{ minWidth: "368px" }}
-					>
-						<Loading
-							type="points-opacity"
-							color="currentColor"
-							size="sm"
-						/>
-					</Button>
-				);
+				return <button>Loading...</button>;
 			} else {
 				return (
-					<Button
-						onClick={addAddressToWhitelist}
-						flat
-						auto
-						rounded
-						color="gradient"
-						size="xl"
-						css={{ minWidth: "368px" }}
-					>
-						<Text
-							css={{ color: "inherit" }}
-							size={16}
-							weight="bold"
-							transform="uppercase"
-						>
-							Join the Whitelist
-						</Text>
-					</Button>
+					<button onClick={addAddressToWhitelist}>
+						<p>Join the Whitelist</p>
+					</button>
 				);
 			}
 		} else {
 			return (
-				<Button
-					onClick={connectWallet}
-					flat
-					auto
-					rounded
-					color="gradient"
-					size="xl"
-					css={{ minWidth: "368px" }}
-				>
-					<Text
-						css={{ color: "inherit" }}
-						size={16}
-						weight="bold"
-						transform="uppercase"
-					>
-						Connect wallet
-					</Text>
-				</Button>
+				<button onClick={connectWallet}>
+					<p>Connect wallet</p>
+				</button>
 			);
 		}
 	}
 
 	return (
 		<>
-			<Spacer />
-			<Text
-				size={72}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $blue600 -20%, $pink600 50%",
-				}}
-			>
-				Welcome to DEVS DAO
-			</Text>
-			<Text
-				size={48}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $yellow600 -20%, $pink600 50%",
-				}}
-			>
-				Join out whitelist to get access to presale
-			</Text>
-			<Spacer />
+			<br />
+			<h1>Welcome to DEVS DAO</h1>
+			<h2>Join out whitelist to get access to presale</h2>
+			<br />
 			{renderButton()}
 		</>
 	);

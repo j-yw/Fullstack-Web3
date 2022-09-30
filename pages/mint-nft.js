@@ -1,5 +1,4 @@
 import Web3Modal from "web3modal";
-import { Text, Button, Spacer, Loading } from "@nextui-org/react";
 import { Contract, providers, utils } from "ethers";
 import { useEffect, useRef, useState } from "react";
 import { DEVS_NFT_ABI, DEVS_NFT_CONTRACT_ADDRESS } from "../constants";
@@ -235,121 +234,41 @@ export default function Home() {
 
 	function renderButton() {
 		if (!isWalletConnected) {
-			return (
-				<Button
-					size="xl"
-					shadow
-					color="gradient"
-					css={{ minWidth: "368px" }}
-					onPress={connectWallet}
-				>
-					Connect Wallet
-				</Button>
-			);
+			return <button onClick={connectWallet}>Connect Wallet</button>;
 		}
 
 		if (isLoading) {
-			return (
-				<Button
-					disabled
-					size="xl"
-					shadow
-					color="gradient"
-					css={{ minWidth: "368px" }}
-				>
-					<Loading type="points-opacity" color="currentColor" />
-				</Button>
-			);
+			return <button disabled>Loading...</button>;
 		}
 
 		if (isOwner && !isPresaleStarted) {
-			return (
-				<Button
-					size="xl"
-					shadow
-					color="gradient"
-					css={{ minWidth: "368px" }}
-					onPress={startPresale}
-				>
-					Start Presale
-				</Button>
-			);
+			return <button onClick={startPresale}>Start Presale</button>;
 		}
 
 		if (!isPresaleStarted) {
-			return (
-				<Button
-					size="xl"
-					shadow
-					color="gradient"
-					css={{ minWidth: "368px" }}
-				>
-					Presale Started
-				</Button>
-			);
+			return <button>Presale Started</button>;
 		}
 
 		if (isPresaleStarted && !isPresaleEnded) {
 			return (
 				<>
-					<Text
-						size={36}
-						weight="bold"
-						css={{
-							textGradient:
-								"45deg, $purple600 -20%, $pink600 100%",
-						}}
-					>
-						Your address is whitelisted for presale
-					</Text>
-					<Spacer />
-					<Button
-						size="xl"
-						shadow
-						color="gradient"
-						css={{ minWidth: "368px" }}
-						onClick={presaleMint}
-					>
-						Presale Mint
-					</Button>
+					<p>Your address is whitelisted for presale</p>
+					<br />
+					<button onClick={presaleMint}>Presale Mint</button>
 				</>
 			);
 		}
 
 		if (isPresaleStarted && isPresaleEnded) {
-			return <Button onClick={publicMint}>Public Mint</Button>;
+			return <button onClick={publicMint}>Public Mint</button>;
 		}
 	}
 
 	return (
 		<>
-			<Text
-				size={72}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $blue600 -20%, $pink600 50%",
-				}}
-			>
-				Welcome to Devs NFT
-			</Text>
-			<Text
-				size={48}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $yellow600 -20%, $pink600 50%",
-				}}
-			>
-				Mint Your NFTs Now
-			</Text>
-			<Text
-				size={48}
-				weight="bold"
-				css={{
-					textGradient: "45deg, $purple600 -20%, $pink600 100%",
-				}}
-			>
-				{isTokenIdsMinted} of 20 have been minted
-			</Text>
+			<h1>Welcome to Devs NFT</h1>
+			<h2>Mint Your NFTs Now</h2>
+			<h2>{isTokenIdsMinted} of 20 have been minted</h2>
 			{renderButton()}
 		</>
 	);

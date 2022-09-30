@@ -18,20 +18,9 @@ const darkTheme = createTheme({
 
 function MyApp({ Component, pageProps }) {
 	return (
-		<NextThemesProvider
-			defaultTheme="system"
-			attribute="class"
-			value={{
-				light: lightTheme.className,
-				dark: darkTheme.className,
-			}}
-		>
-			<NextUIProvider>
-				<Layout>
-					<Component {...pageProps} />
-				</Layout>
-			</NextUIProvider>
-		</NextThemesProvider>
+		<Layout>
+			<Component {...pageProps} />
+		</Layout>
 	);
 }
 
