@@ -322,11 +322,11 @@ export default function Home() {
 
 	return (
 		<>
-			<p>Welcome to DEVS DAO</p>
-			<p>Your NFT balance is {nftBalance}</p>
-			<p>Total number of proposals: {numberOfProposals}</p>
+			<h1>Welcome to DEVS DAO</h1>
+			<h2>Your NFT balance is {nftBalance}</h2>
+			<h2>Total number of proposals: {numberOfProposals}</h2>
 			<button onClick={() => setSelectedTab("Create Proposal")}>
-				<p>Create Proposal</p>
+				Create Proposal
 			</button>
 			<br />
 			<button onClick={() => setSelectedTab("View Proposals")}>

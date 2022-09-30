@@ -108,32 +108,23 @@ export default function home() {
 	function renderButton() {
 		if (isWalletConnected) {
 			if (isJoinedWhitelist) {
-				return (
-					<button>
-						<p>Thanks for joining the whitelist</p>
-					</button>
-				);
+				return <button>Thanks for joining the whitelist</button>;
 			} else if (isLoading) {
 				return <button>Loading...</button>;
 			} else {
 				return (
 					<button onClick={addAddressToWhitelist}>
-						<p>Join the Whitelist</p>
+						Join the Whitelist
 					</button>
 				);
 			}
 		} else {
-			return (
-				<button onClick={connectWallet}>
-					<p>Connect wallet</p>
-				</button>
-			);
+			return <button onClick={connectWallet}>Connect wallet</button>;
 		}
 	}
 
 	return (
 		<>
-			<br />
 			<h1>Welcome to DEVS DAO</h1>
 			<h2>Join out whitelist to get access to presale</h2>
 			<br />
