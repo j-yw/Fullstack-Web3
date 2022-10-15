@@ -183,8 +183,8 @@ export default function ClaimTokenPage() {
 			</h1>
 
 			<h1>
-				{utils.formatEther(tokenBalance)} of{" "}
-				{utils.formatEther(totalSupply)} have been minted
+				{tokenBalance && utils.formatEther(tokenBalance)} of{" "}
+				{totalSupply && utils.formatEther(totalSupply)} have been minted
 			</h1>
 
 			<br />
@@ -294,32 +294,36 @@ export default function ClaimTokenPage() {
 				/>
 			) : (
 				<>
-					<h2>Your are the owner of the contract</h2>
-					<button
-						style={{
-							display: "flex",
-							justifyContent: "center",
-							alignItems: "center",
-							minWidth: "240px",
-						}}
-						onClick={() => withdraw([])}
-					>
-						{isWithdrawing ? (
-							<ThreeDots
-								height="18"
-								width="18"
-								radius="9"
-								color="#e5e5e5"
-								ariaLabel="three-dots-loading"
-								wrapperClassName=""
-								visible={true}
-							/>
-						) : (
-							`
+					{isOwner && (
+						<>
+							<h2>Your are the owner of the contract</h2>
+							<button
+								style={{
+									display: "flex",
+									justifyContent: "center",
+									alignItems: "center",
+									minWidth: "240px",
+								}}
+								onClick={() => withdraw([])}
+							>
+								{isWithdrawing ? (
+									<ThreeDots
+										height="18"
+										width="18"
+										radius="9"
+										color="#e5e5e5"
+										ariaLabel="three-dots-loading"
+										wrapperClassName=""
+										visible={true}
+									/>
+								) : (
+									`
 							Withdraw ${utils.formatEther(contractBalance)} Coins
 							`
-						)}
-					</button>
+								)}
+							</button>
+						</>
+					)}
 				</>
 			)}
 		</>
