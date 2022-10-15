@@ -33,11 +33,6 @@ export default function VotePage() {
 		addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
 	});
 
-	console.log(
-		`🍀 \n | 🍄 file: vote.js \n | 🍄 line 35 \n | 🍄 VotePage \n | 🍄 treasuryBalance`,
-		treasuryBalance
-	);
-
 	const { data: signer } = useSigner();
 	const [proposalId, setProposalId] = useState("");
 	const [vote, setVote] = useState("");
