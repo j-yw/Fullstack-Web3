@@ -31,8 +31,8 @@ export default function ClaimTokenPage() {
 
 	//TODO: Refactor
 	const nftContract = useContract({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		signerOrProvider: provider,
 	});
 
