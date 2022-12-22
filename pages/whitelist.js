@@ -43,6 +43,10 @@ export default function WhitelistPage() {
 		return <h1>Please Connect Your Wallet</h1>;
 	}
 
+	if (isWhitelistedLoading) {
+		return <h1>Checking your whitelist status</h1>;
+	}
+
 	return (
 		<>
 			<h1>Welcome to DEVS NFT</h1>

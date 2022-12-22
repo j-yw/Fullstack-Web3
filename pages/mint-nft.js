@@ -23,14 +23,14 @@ export default function MintNftPage() {
 		address: DEVS_NFT_CONTRACT_ADDRESS,
 		abi: DEVS_NFT_ABI,
 		functionName: "presaleMint",
-		args: [{ value: utils.parseEther("0.01") }],
+		args: [{ value: utils.parseEther("0.0001") }],
 	});
 
 	const { config: publicMintConfig } = usePrepareContractWrite({
 		address: DEVS_NFT_CONTRACT_ADDRESS,
 		abi: DEVS_NFT_ABI,
 		functionName: "mint",
-		args: [{ value: utils.parseEther("0.02") }],
+		args: [{ value: utils.parseEther("0.0001") }],
 	});
 
 	const { config: startPresaleConfig } = usePrepareContractWrite({
@@ -123,7 +123,6 @@ export default function MintNftPage() {
 				<button
 					style={{
 						minWidth: "240px",
-						height: "48px",
 						display: "flex",
 						justifyContent: "center",
 						alignItems: "center",
@@ -150,7 +149,7 @@ export default function MintNftPage() {
 			);
 		}
 
-		if (!isPresaleStarted) {
+		if (!isPresaleStarted && !isOwner) {
 			return (
 				<button style={{ minWidth: "240px" }}>Presale Started</button>
 			);

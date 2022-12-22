@@ -14,13 +14,18 @@ export function Layout({ children }) {
 			>
 				<NextLink href="/" passHref>
 					<a style={{ textDecoration: "none" }}>
-						<h1>Devs DAO</h1>
+						<h1>Full Stack Web3</h1>
 					</a>
 				</NextLink>
 				<ConnectButton />
 			</div>
 			<hr />
 			<div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+				<h2 style={{ marginTop: "8px" }}>
+					<NextLink href="/whitelist" prefetch>
+						Join Whitelist
+					</NextLink>
+				</h2>
 				<h2 style={{ marginTop: "8px" }}>
 					<NextLink href="/mint-nft" prefetch>
 						Get NFTs

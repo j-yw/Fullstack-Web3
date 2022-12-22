@@ -1,4 +1,4 @@
-import { BigNumber, utils } from "ethers";
+import { BigNumber, Signer, utils } from "ethers";
 import { useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
 import {
@@ -9,14 +9,13 @@ import {
 } from "../constants";
 
 import {
-	useSigner,
 	useAccount,
 	usePrepareContractWrite,
 	useWaitForTransaction,
 	useContractWrite,
 	useContractRead,
-	useProvider,
 	useContract,
+	useSigner,
 } from "wagmi";
 
 export default function ClaimTokenPage() {
@@ -24,7 +23,7 @@ export default function ClaimTokenPage() {
 		useAccount();
 
 	const { data: signer } = useSigner();
-	const provider = useProvider();
+
 	const zero = BigNumber.from(0);
 
 	const [tokensToBeClaimed, setTokensToBeClaimed] = useState(zero);
@@ -32,51 +31,16 @@ export default function ClaimTokenPage() {
 	const [isOwner, setIsOwner] = useState(false);
 	const [isTokenClaimLoading, setIsTokenClaimLoading] = useState(false);
 
-	//TODO: Refactor
-	async function getTokensToBeClaimed() {
-		try {
-			if (isNftBalanceSuccess) {
-				const balance = nftBalance;
-				setIsTokenClaimLoading(true);
-
-				if (balance.toNumber() === 0) {
-					setTokensToBeClaimed(zero);
-				} else {
-					var amount = 0;
-					for (let i = 0; i < balance.toNumber(); i++) {
-						const tokenId = await nftContract.tokenOfOwnerByIndex(
-							connectedWalletAddress,
-							i
-						);
-						const claimed = await tokenContract.tokenIdsClaimed(
-							tokenId
-						);
-
-						if (!claimed) {
-							amount++;
-						}
-					}
-
-					setTokensToBeClaimed(BigNumber.from(amount));
-					setIsTokenClaimLoading(false);
-				}
-			} else {
-				throw Error("NFT balance not available");
-			}
-		} catch (error) {
-			console.error(error);
-			setTokensToBeClaimed(zero);
-		}
-	}
-
 	const nftContract = useContract({
 		address: DEVS_NFT_CONTRACT_ADDRESS,
 		abi: DEVS_NFT_ABI,
+		signerOrProvider: signer,
 	});
 
 	const tokenContract = useContract({
 		address: DEVS_TOKEN_CONTRACT_ADDRESS,
 		abi: DEVS_TOKEN_ABI,
+		signerOrProvider: signer,
 	});
 
 	const { data: contractBalance } = useContractRead({
@@ -172,9 +136,50 @@ export default function ClaimTokenPage() {
 			wait: withdrawData?.wait,
 		});
 
+	//TODO: Refactor
+	async function getTokensToBeClaimed() {
+		try {
+			if (isNftBalanceSuccess) {
+				const balance = nftBalance;
+				setIsTokenClaimLoading(true);
+
+				if (balance.toNumber() === 0) {
+					setTokensToBeClaimed(zero);
+				} else {
+					var amount = 0;
+
+					for (let i = 0; i < balance.toNumber(); i++) {
+						const tokenId = await nftContract.tokenOfOwnerByIndex(
+							connectedWalletAddress,
+							i
+						);
+
+						const claimed = await tokenContract.tokenIdsClaimed(
+							tokenId
+						);
+
+						if (!claimed) {
+							amount++;
+						}
+					}
+
+					setTokensToBeClaimed(BigNumber.from(amount));
+					setIsTokenClaimLoading(false);
+				}
+			} else {
+				throw Error("NFT balance not available");
+			}
+		} catch (error) {
+			console.error(error);
+			setTokensToBeClaimed(zero);
+		}
+	}
+
 	if (!isWalletConnected) {
 		return <h1>Please Connect Your Wallet</h1>;
 	}
+
+	console.log(tokensToBeClaimed);
 
 	return (
 		<>
@@ -182,39 +187,39 @@ export default function ClaimTokenPage() {
 				Token balance:{" "}
 				{isTokenBalanceSuccess && utils.formatEther(tokenBalance)}
 			</h1>
-
 			<h1>
 				{tokenBalance && utils.formatEther(tokenBalance)} of{" "}
 				{totalSupply && utils.formatEther(totalSupply)} have been minted
 			</h1>
-
 			<br />
 			<hr />
-
 			<h2>{tokensToBeClaimed.toString()} NFT Available for claiming</h2>
-			<button
-				onClick={getTokensToBeClaimed}
-				style={{
-					minWidth: "240px",
-					display: "flex",
-					justifyContent: "center",
-					alignItems: "center",
-				}}
-			>
-				{isTokenClaimLoading ? (
-					<ThreeDots
-						height="18"
-						width="18"
-						radius="9"
-						color="#e5e5e5"
-						ariaLabel="three-dots-loading"
-						wrapperClassName=""
-						visible={true}
-					/>
-				) : (
-					"Check Eligibility"
-				)}
-			</button>
+
+			{tokensToBeClaimed.toNumber() === 0 && (
+				<button
+					onClick={getTokensToBeClaimed}
+					style={{
+						minWidth: "240px",
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					{isTokenClaimLoading ? (
+						<ThreeDots
+							height="18"
+							width="18"
+							radius="9"
+							color="#e5e5e5"
+							ariaLabel="three-dots-loading"
+							wrapperClassName=""
+							visible={true}
+						/>
+					) : (
+						"Check Eligibility"
+					)}
+				</button>
+			)}
 
 			{tokensToBeClaimed > 0 && !isTokenClaimLoading && (
 				<button
@@ -243,10 +248,8 @@ export default function ClaimTokenPage() {
 					)}
 				</button>
 			)}
-
 			<br />
 			<hr />
-
 			<h2>You can also mint tokens by spending ETH</h2>
 			<input
 				style={{ minWidth: "220px" }}
@@ -280,7 +283,6 @@ export default function ClaimTokenPage() {
 					"Mint Tokens"
 				)}
 			</button>
-
 			<br />
 			<hr />
 			{isOwnerLoading ? (
