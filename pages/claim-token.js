@@ -1,4 +1,4 @@
-import { utils } from "ethers";
+import { BigNumber, utils } from "ethers";
 import { useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
 import {
@@ -22,26 +22,17 @@ import {
 export default function ClaimTokenPage() {
 	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
 		useAccount();
+
 	const { data: signer } = useSigner();
 	const provider = useProvider();
-	const [tokensToBeClaimed, setTokensToBeClaimed] = useState(0);
-	const [tokenAmount, setTokenAmount] = useState(0);
+	const zero = BigNumber.from(0);
+
+	const [tokensToBeClaimed, setTokensToBeClaimed] = useState(zero);
+	const [tokenAmount, setTokenAmount] = useState(zero);
 	const [isOwner, setIsOwner] = useState(false);
 	const [isTokenClaimLoading, setIsTokenClaimLoading] = useState(false);
 
 	//TODO: Refactor
-	const nftContract = useContract({
-		address: DEVS_NFT_CONTRACT_ADDRESS,
-		abi: DEVS_NFT_ABI,
-		signerOrProvider: provider,
-	});
-
-	const tokenContract = useContract({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
-		signerOrProvider: signer,
-	});
-
 	async function getTokensToBeClaimed() {
 		try {
 			if (isNftBalanceSuccess) {
@@ -49,7 +40,7 @@ export default function ClaimTokenPage() {
 				setIsTokenClaimLoading(true);
 
 				if (balance.toNumber() === 0) {
-					setTokensToBeClaimed(0);
+					setTokensToBeClaimed(zero);
 				} else {
 					var amount = 0;
 					for (let i = 0; i < balance.toNumber(); i++) {
@@ -66,7 +57,7 @@ export default function ClaimTokenPage() {
 						}
 					}
 
-					setTokensToBeClaimed(amount);
+					setTokensToBeClaimed(BigNumber.from(amount));
 					setIsTokenClaimLoading(false);
 				}
 			} else {
@@ -78,19 +69,27 @@ export default function ClaimTokenPage() {
 		}
 	}
 
-	// Contract Read Functions
-	const { data: contractBalance, isSuccess: isContractBalanceSuccess } =
-		useContractRead({
-			addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-			contractInterface: DEVS_TOKEN_ABI,
-			functionName: "getContractBalance",
-			watch: true,
-		});
+	const nftContract = useContract({
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
+	});
+
+	const tokenContract = useContract({
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
+	});
+
+	const { data: contractBalance } = useContractRead({
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
+		functionName: "getContractBalance",
+		watch: true,
+	});
 
 	const { data: tokenBalance, isSuccess: isTokenBalanceSuccess } =
 		useContractRead({
-			addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-			contractInterface: DEVS_TOKEN_ABI,
+			address: DEVS_TOKEN_CONTRACT_ADDRESS,
+			abi: DEVS_TOKEN_ABI,
 			functionName: "balanceOf",
 			args: [connectedWalletAddress],
 			watch: true,
@@ -98,17 +97,17 @@ export default function ClaimTokenPage() {
 
 	const { data: totalSupply, isSuccess: isTokenTotalSupplySuccess } =
 		useContractRead({
-			addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-			contractInterface: DEVS_TOKEN_ABI,
+			address: DEVS_TOKEN_CONTRACT_ADDRESS,
+			abi: DEVS_TOKEN_ABI,
 			functionName: "totalSupply",
 			watch: true,
 		});
 
-	const { data: contractOwner } = useContractRead({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
+	const { data: contractOwner, isLoading: isOwnerLoading } = useContractRead({
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
 		functionName: "owner",
-		onSuccess(contractOwner) {
+		async onSuccess(contractOwner) {
 			if (
 				connectedWalletAddress.toLowerCase() ===
 				contractOwner.toLowerCase()
@@ -120,16 +119,15 @@ export default function ClaimTokenPage() {
 
 	const { data: nftBalance, isSuccess: isNftBalanceSuccess } =
 		useContractRead({
-			addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-			contractInterface: DEVS_NFT_ABI,
+			address: DEVS_NFT_CONTRACT_ADDRESS,
+			abi: DEVS_NFT_ABI,
 			functionName: "balanceOf",
 			args: [connectedWalletAddress],
 		});
 
-	//Contract Write Functions
-	const { data: mintData, write: mintToken } = useContractWrite({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
+	const { config: mintDataConfig } = usePrepareContractWrite({
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
 		functionName: "mint",
 		args: [
 			tokenAmount,
@@ -141,6 +139,9 @@ export default function ClaimTokenPage() {
 		],
 	});
 
+	const { data: mintData, write: mintToken } =
+		useContractWrite(mintDataConfig);
+
 	const { isError: isMintError, isLoading: isMinting } =
 		useWaitForTransaction({
 			hash: mintData?.hash,
@@ -148,8 +149,8 @@ export default function ClaimTokenPage() {
 		});
 
 	const { data: claimData, write: claimTokens } = useContractWrite({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
 		functionName: "claim",
 	});
 
@@ -157,9 +158,6 @@ export default function ClaimTokenPage() {
 		useWaitForTransaction({
 			hash: claimData?.hash,
 			wait: claimTokens?.wait,
-			onSuccess() {
-				getTokensToBeClaimed();
-			},
 		});
 
 	const { data: withdrawData, write: withdraw } = useContractWrite({
@@ -174,7 +172,6 @@ export default function ClaimTokenPage() {
 			wait: withdrawData?.wait,
 		});
 
-	//Render Markup
 	if (!isWalletConnected) {
 		return <h1>Please Connect Your Wallet</h1>;
 	}
@@ -187,15 +184,14 @@ export default function ClaimTokenPage() {
 			</h1>
 
 			<h1>
-				You minted{" "}
-				{isTokenBalanceSuccess && utils.formatEther(tokenBalance)} of{" "}
-				{isTokenTotalSupplySuccess && utils.formatEther(totalSupply)}{" "}
+				{tokenBalance && utils.formatEther(tokenBalance)} of{" "}
+				{totalSupply && utils.formatEther(totalSupply)} have been minted
 			</h1>
 
 			<br />
 			<hr />
 
-			<h2>{tokensToBeClaimed} NFT Available for claiming</h2>
+			<h2>{tokensToBeClaimed.toString()} NFT Available for claiming</h2>
 			<button
 				onClick={getTokensToBeClaimed}
 				style={{
@@ -256,7 +252,9 @@ export default function ClaimTokenPage() {
 				style={{ minWidth: "220px" }}
 				placeholder="number of tokens to mint"
 				onChange={(e) => {
-					setTokenAmount(e.target.value);
+					if (tokenAmount) {
+						setTokenAmount(BigNumber.from(e.target.value));
+					}
 				}}
 			></input>
 			<button
@@ -285,38 +283,48 @@ export default function ClaimTokenPage() {
 
 			<br />
 			<hr />
-
-			{isOwner && (
+			{isOwnerLoading ? (
+				<ThreeDots
+					height="72"
+					width="72"
+					radius="9"
+					color="#e5e5e5"
+					ariaLabel="three-dots-loading"
+					wrapperClassName=""
+					visible={true}
+				/>
+			) : (
 				<>
-					<h2>Your are the owner of the contract</h2>
-					<button
-						style={{
-							display: "flex",
-							justifyContent: "center",
-							alignItems: "center",
-							minWidth: "240px",
-						}}
-						onClick={() => withdraw([])}
-					>
-						{isWithdrawing ? (
-							<ThreeDots
-								height="18"
-								width="18"
-								radius="9"
-								color="#e5e5e5"
-								ariaLabel="three-dots-loading"
-								wrapperClassName=""
-								visible={true}
-							/>
-						) : (
+					{isOwner && (
+						<>
+							<h2>Your are the owner of the contract</h2>
+							<button
+								style={{
+									display: "flex",
+									justifyContent: "center",
+									alignItems: "center",
+									minWidth: "240px",
+								}}
+								onClick={() => withdraw([])}
+							>
+								{isWithdrawing ? (
+									<ThreeDots
+										height="18"
+										width="18"
+										radius="9"
+										color="#e5e5e5"
+										ariaLabel="three-dots-loading"
+										wrapperClassName=""
+										visible={true}
+									/>
+								) : (
+									`
+							Withdraw ${utils.formatEther(contractBalance)} Coins
 							`
-							Withdraw ${
-								isContractBalanceSuccess &&
-								utils.formatEther(contractBalance.toString())
-							} Coins
-							`
-						)}
-					</button>
+								)}
+							</button>
+						</>
+					)}
 				</>
 			)}
 		</>

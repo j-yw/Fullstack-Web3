@@ -1,5 +1,5 @@
-import Web3Modal from "web3modal";
-import { Contract, providers } from "ethers";
+import { Contract, providers, utils } from "ethers";
+import { ThreeDots } from "react-loader-spinner";
 import { useEffect, useRef, useState } from "react";
 import {
 	DEVS_DAO_CONTRACT_ADDRESS,
@@ -8,80 +8,42 @@ import {
 	DEVS_NFT_ABI,
 } from "../constants";
 
+import {
+	useAccount,
+	usePrepareContractWrite,
+	useWaitForTransaction,
+	useContractWrite,
+	useContractRead,
+	useProvider,
+	useContract,
+	useBalance,
+} from "wagmi";
+
 export default function VotePage() {
-	const [treasuryBalance, setTreasuryBalance] = useState("0");
-	const [numberOfProposals, setNumberOfProposals] = useState("0");
 	const [proposals, setProposals] = useState([]);
-	const [nftBalance, setNftBalance] = useState(0);
 	const [fakeNftTokenId, setFakeNftTokenId] = useState("");
 	const [selectedTab, setSelectedTab] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [isWalletConnected, setIsWalletConnected] = useState(false);
-	const web3ModalRef = useRef();
 
-	async function connectWallet() {
-		try {
-			await getProviderOrSigner();
-			setIsWalletConnected(true);
-		} catch (error) {
-			console.error(error);
-		}
-	}
+	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
+		useAccount();
 
-	async function getDAOTreasuryBalance() {
-		try {
-			const provider = await getProviderOrSigner();
-			const balance = await provider.getBalance(
-				DEVS_DAO_CONTRACT_ADDRESS
-			);
-			setTreasuryBalance(balance.toString());
-		} catch (error) {
-			console.error(error);
-		}
-	}
+	const { data: treasuryBalance } = useBalance({
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+	});
 
-	async function getNumberOfDaoProposals() {
-		try {
-			const provider = await getProviderOrSigner();
-			const contract = getDaoContractInstance(provider);
-			const daoProposals = await contract.numberOfProposals();
-			setNumberOfProposals(daoProposals.toString());
-		} catch (error) {
-			console.error(error);
-		}
-	}
+	const [proposalId, setProposalId] = useState("");
+	const [vote, setVote] = useState("");
 
-	async function getUserNFTBalance() {
-		try {
-			const signer = await getProviderOrSigner(true);
-			const address = await signer.getAddress();
-			const nftContract = getNftDevsContractInstance(signer);
-			const balance = await nftContract.balanceOf(address);
-			setNftBalance(parseInt(balance.toString()));
-		} catch (error) {
-			console.error(error);
-		}
-	}
+	const provider = useProvider();
 
-	async function createProposal() {
-		try {
-			const signer = await getProviderOrSigner(true);
-			const daoContract = getDaoContractInstance(signer);
-			const txn = await daoContract.createProposal(fakeNftTokenId);
-			setIsLoading(true);
-			await txn.wait();
-			await getNumberOfDaoProposals();
-			setIsLoading(false);
-		} catch (error) {
-			console.error(error);
-			window.alert(error.data.message);
-		}
-	}
+	const daoContract = useContract({
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
+	});
 
 	async function getProposalById(id) {
 		try {
-			const provider = await getProviderOrSigner();
-			const daoContract = getDaoContractInstance(provider);
 			const proposal = await daoContract.proposals(id);
 			const parsedProposal = {
 				proposalId: id,
@@ -98,6 +60,7 @@ export default function VotePage() {
 			console.error(error);
 		}
 	}
+
 	async function getAllProposals() {
 		try {
 			const proposals = [];
@@ -111,87 +74,92 @@ export default function VotePage() {
 			console.error(error);
 		}
 	}
-	async function voteOnProposal(proposalId, _vote) {
-		try {
-			const signer = await getProviderOrSigner(true);
-			const daoContract = getDaoContractInstance(signer);
-			let vote = _vote === "YAY" ? 0 : 1;
-			const txn = await daoContract.voteOnProposal(proposalId, vote);
-			setIsLoading(true);
-			await txn.wait();
-			setIsLoading(false);
-			await getAllProposals();
-		} catch (error) {
-			console.error(error);
-			window.alert(error.data.message);
-		}
-	}
-	//BUG: NFT price is higher than the contract balance
-	async function executeProposal(proposalId) {
-		try {
-			const signer = await getProviderOrSigner(true);
-			const daoContract = getDaoContractInstance(signer);
-			const txn = await daoContract.executeProposal(proposalId);
-			setIsLoading(true);
-			await txn.wait();
-			setIsLoading(false);
-			await getAllProposals();
-		} catch (error) {
-			console.error(error);
-			window.alert(error);
-		}
-	}
 
-	async function getProviderOrSigner(needSigner = false) {
-		const provider = await web3ModalRef.current.connect();
-		const web3Provider = new providers.Web3Provider(provider);
-		const { chainId } = await web3Provider.getNetwork();
+	const {
+		data: numberOfProposals,
+		isLoading: isNumberOfProposalsLoading,
+		isSuccess: isNumberOfProposalsSuccess,
+	} = useContractRead({
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
+		functionName: "numberOfProposals",
+		watch: true,
+	});
 
-		if (chainId !== 5) {
-			window.alert("Change the network to Goerli");
-			throw new Error(
-				"Using the wrong network, Change the network to Goerli"
-			);
-		}
+	const {
+		data: nftBalance,
+		isLoading: isNftBalanceLoading,
+		isSuccess: isNftBalanceSuccess,
+	} = useContractRead({
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
+		functionName: "balanceOf",
+		args: [connectedWalletAddress],
+		watch: true,
+	});
 
-		if (needSigner) {
-			const signer = web3Provider.getSigner();
-			return signer;
-		}
+	const { config: createProposalDataConfig } = usePrepareContractWrite({
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
+		functionName: "createProposal",
+		args: [fakeNftTokenId],
+		onSuccess: () => {
+			getAllProposals();
+		},
+	});
 
-		return web3Provider;
-	}
+	const { data: createProposalData, write: createProposal } =
+		useContractWrite(createProposalDataConfig);
 
-	function getDaoContractInstance(providerOrSigner) {
-		return new Contract(
-			DEVS_DAO_CONTRACT_ADDRESS,
-			DEVS_DAO_ABI,
-			providerOrSigner
-		);
-	}
-	function getNftDevsContractInstance(providerOrSigner) {
-		return new Contract(
-			DEVS_NFT_CONTRACT_ADDRESS,
-			DEVS_NFT_ABI,
-			providerOrSigner
-		);
-	}
+	const {
+		isError: isCreateProposalError,
+		isLoading: isCreateProposalLoading,
+		isSuccess: isCreateProposalSuccess,
+	} = useWaitForTransaction({
+		hash: createProposalData?.hash,
+		wait: createProposalData?.wait,
+	});
+
+	const { config: voteDataConfig } = usePrepareContractWrite({
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
+		functionName: "voteOnProposal",
+		args: [proposalId, vote],
+	});
+
+	const { data: voteData, write: voteOnProposal } =
+		useContractWrite(voteDataConfig);
+
+	const { config: executeDataConfig } = usePrepareContractWrite({
+		addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
+		contractInterface: DEVS_DAO_ABI,
+		functionName: "executeProposal",
+		args: [proposalId],
+	});
+
+	const { data: executeData, write: execute } =
+		useContractWrite(executeDataConfig);
+
+	const {
+		isError: isVotingError,
+		isLoading: isVotingLoading,
+		isSuccess: isVotingSuccess,
+	} = useWaitForTransaction({
+		hash: voteData?.hash,
+		wait: voteData?.wait,
+	});
+
+	const {
+		isError: isExecuteError,
+		isLoading: isExecuteLoading,
+		isSuccess: isExecuteSuccess,
+	} = useWaitForTransaction({
+		hash: executeData?.hash,
+		wait: executeData?.wait,
+	});
 
 	useEffect(() => {
-		if (!isWalletConnected) {
-			web3ModalRef.current = new Web3Modal({
-				network: "goerli",
-				providerOptions: {},
-				disableInjectedProvider: false,
-			});
-
-			connectWallet().then(() => {
-				getAllProposals();
-				getDAOTreasuryBalance();
-				getUserNFTBalance();
-				getNumberOfDaoProposals();
-			});
-		}
+		getAllProposals();
 	}, [isWalletConnected]);
 
 	useEffect(() => {
@@ -231,10 +199,35 @@ export default function VotePage() {
 							onChange={(e) => setFakeNftTokenId(e.target.value)}
 						/>
 						<button
-							style={{ minWidth: "240px" }}
+							style={{
+								minWidth: "240px",
+								display: "flex",
+								justifyContent: "center",
+								alignItems: "center",
+							}}
 							onClick={createProposal}
 						>
-							Create
+							{isCreateProposalLoading ? (
+								<>
+									<ThreeDots
+										height="18"
+										width="18"
+										radius="9"
+										color="#e5e5e5"
+										ariaLabel="three-dots-loading"
+										wrapperClassName=""
+										visible={true}
+									/>
+								</>
+							) : (
+								<>
+									{isCreateProposalSuccess ? (
+										<>Proposal Created</>
+									) : (
+										<span>Create</span>
+									)}
+								</>
+							)}
 						</button>
 					</div>
 				</>
@@ -250,7 +243,7 @@ export default function VotePage() {
 		} else {
 			return (
 				<div>
-					{proposals.map((p, index) => (
+					{proposals?.map((p, index) => (
 						<div key={index}>
 							<p>Proposal ID: {p.proposalId}</p>
 							<p>Fake NFT to Purchase: {p.nftTokenId}</p>
@@ -262,35 +255,93 @@ export default function VotePage() {
 							!p.executed ? (
 								<div>
 									<button
-										style={{ minWidth: "240px" }}
-										onClick={() =>
-											voteOnProposal(p.proposalId, "YAY")
-										}
+										style={{
+											display: "flex",
+											justifyContent: "center",
+											alignItems: "center",
+											minWidth: "240px",
+										}}
+										onClick={() => {
+											setProposalId(p.proposalId);
+											setVote("0");
+											voteOnProposal([]);
+										}}
 									>
-										Vote YAY
+										{isVotingLoading ? (
+											<ThreeDots
+												height="18"
+												width="18"
+												radius="9"
+												color="#e5e5e5"
+												ariaLabel="three-dots-loading"
+												wrapperClassName=""
+												visible={true}
+											/>
+										) : (
+											<span>Vote YAY</span>
+										)}
 									</button>
 									<button
-										style={{ minWidth: "240px" }}
-										onClick={() =>
-											voteOnProposal(p.proposalId, "NAY")
-										}
+										style={{
+											display: "flex",
+											justifyContent: "center",
+											alignItems: "center",
+											minWidth: "240px",
+										}}
+										onClick={() => {
+											setProposalId(p.proposalId);
+											setVote("1");
+											voteOnProposal([]);
+										}}
 									>
-										Vote NAY
+										{isVotingLoading ? (
+											<ThreeDots
+												height="18"
+												width="18"
+												radius="9"
+												color="#e5e5e5"
+												ariaLabel="three-dots-loading"
+												wrapperClassName=""
+												visible={true}
+											/>
+										) : (
+											<span>Vote NAY</span>
+										)}
 									</button>
 								</div>
 							) : p.deadline.getTime() < Date.now() &&
 							  !p.executed ? (
 								<div>
 									<button
-										style={{ minWidth: "240px" }}
-										onClick={() =>
-											executeProposal(p.proposalId)
-										}
+										style={{
+											display: "flex",
+											justifyContent: "center",
+											alignItems: "center",
+											minWidth: "240px",
+										}}
+										onClick={() => {
+											setProposalId(p.proposalId);
+											execute([]);
+										}}
 									>
-										Execute Proposal{" "}
-										{p.yayVotes > p.nayVotes
-											? "(YAY)"
-											: "(NAY)"}
+										{isExecuteLoading ? (
+											<ThreeDots
+												height="18"
+												width="18"
+												radius="9"
+												color="#e5e5e5"
+												ariaLabel="three-dots-loading"
+												wrapperClassName=""
+												visible={true}
+											/>
+										) : (
+											<span>
+												Execute Proposal{" "}
+												{p.yayVotes > p.nayVotes
+													? "(YAY)"
+													: "(NAY)"}
+											</span>
+										)}
 									</button>
 								</div>
 							) : (
@@ -310,13 +361,57 @@ export default function VotePage() {
 	return (
 		<>
 			<h1>Welcome to DEVS DAO</h1>
-			<h2>Your NFT balance is {nftBalance}</h2>
-			<h2>Total number of proposals: {numberOfProposals}</h2>
+			<h2>
+				{isNftBalanceLoading ? (
+					<ThreeDots
+						height="18"
+						width="18"
+						radius="9"
+						color="#e5e5e5"
+						ariaLabel="three-dots-loading"
+						wrapperClassName=""
+						visible={true}
+					/>
+				) : (
+					<span>
+						Your NFT balance is{" "}
+						{isNftBalanceSuccess && nftBalance.toString()}
+					</span>
+				)}
+			</h2>
+
+			<h2>
+				{isNumberOfProposalsLoading ? (
+					<ThreeDots
+						height="18"
+						width="18"
+						radius="9"
+						color="#e5e5e5"
+						ariaLabel="three-dots-loading"
+						wrapperClassName=""
+						visible={true}
+					/>
+				) : (
+					<span>
+						Total number of proposals:{" "}
+						{isNumberOfProposalsSuccess &&
+							numberOfProposals.toString()}
+					</span>
+				)}
+			</h2>
+
+			<h2>Treasury Balance {treasuryBalance?.formatted}</h2>
+
 			<button
 				onClick={() => setSelectedTab("Create Proposal")}
-				style={{ minWidth: "240px" }}
+				style={{
+					minWidth: "240px",
+					display: "flex",
+					justifyContent: "center",
+					alignItems: "center",
+				}}
 			>
-				Create Proposal
+				<span>Create Proposal</span>
 			</button>
 			<br />
 			<button

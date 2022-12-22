@@ -1,11 +1,11 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import {
+	mainnet,
+	goerli,
 	configureChains,
 	createClient,
 	WagmiConfig,
-	mainnet,
-	goerli,
 } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { infuraProvider } from "wagmi/providers/infura";
@@ -23,11 +23,11 @@ const { provider } = configureChains(chains, [
 		apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
 		priority: 1,
 	}),
-	publicProvider({ priority: 2 }),
+	publicProvider({ stallTimeout: 5_000, priority: 2 }),
 ]);
 
 const { connectors } = getDefaultWallets({
-	appName: "FULL STACK WEB3",
+	appName: "DEVS DAO",
 	chains,
 });
 

@@ -1,15 +1,9 @@
 import { utils } from "ethers";
 import { useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
-import {
-	DEVS_NFT_ABI,
-	DEVS_NFT_CONTRACT_ADDRESS,
-	WHITELIST_CONTRACT_ADDRESS,
-	WHITELIST_ABI,
-} from "../constants";
+import { DEVS_NFT_ABI, DEVS_NFT_CONTRACT_ADDRESS } from "../constants";
 
 import {
-	useSigner,
 	useAccount,
 	usePrepareContractWrite,
 	useContractWrite,
@@ -20,31 +14,28 @@ import {
 export default function MintNftPage() {
 	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
 		useAccount();
-	const { data: signer } = useSigner();
+
 	const [isOwner, setIsOwner] = useState(false);
 	const [isPresaleEnded, setIsPresaleEnded] = useState(false);
 
 	// Contract Write prepare configs
 	const { config: presaleConfig } = usePrepareContractWrite({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: signer,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "presaleMint",
 		args: [{ value: utils.parseEther("0.01") }],
 	});
 
 	const { config: publicMintConfig } = usePrepareContractWrite({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: signer,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "mint",
 		args: [{ value: utils.parseEther("0.02") }],
 	});
 
 	const { config: startPresaleConfig } = usePrepareContractWrite({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: signer,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "startPresale",
 	});
 
@@ -76,74 +67,16 @@ export default function MintNftPage() {
 			wait: startPresaleData?.wait,
 		});
 
-	// prepare config will cause contract write to be undefined when switching wallets in metamask
-	const { config: whitelistContractConfig } = usePrepareContractWrite({
-		addressOrName: WHITELIST_CONTRACT_ADDRESS,
-		contractInterface: WHITELIST_ABI,
-		signerOrProvider: signer,
-		functionName: "addAddresssToWhitelist",
-		enabled: false,
-	});
-
-	const { data: whitelistData, write: addToWhitelist } = useContractWrite({
-		addressOrName: WHITELIST_CONTRACT_ADDRESS,
-		contractInterface: WHITELIST_ABI,
-		signerOrProvider: signer,
-		functionName: "addAddresssToWhitelist",
-		enabled: false,
-	});
-
-	const {
-		isLoading: isJoiningWhitelist,
-		isSuccess: isJoiningWhitelistSuccess,
-	} = useWaitForTransaction({
-		hash: whitelistData?.hash,
-		wait: whitelistData?.wait,
-	});
-
-	const { data: withdrawData, write: withdraw } = useContractWrite({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		functionName: "withdraw",
-	});
-
-	const { isError: isWithdrawError, isLoading: isWithdrawing } =
-		useWaitForTransaction({
-			hash: withdrawData?.hash,
-			wait: withdrawData?.wait,
-		});
-
 	//Contract Read Functions
-	const { data: numberOfWhitelistedAddresses } = useContractRead({
-		addressOrName: WHITELIST_CONTRACT_ADDRESS,
-		contractInterface: WHITELIST_ABI,
-		functionName: "numAddressesWhitelisted",
-		enabled: connectedWalletAddress || isJoiningWhitelistSuccess,
-		cacheTime: 2_000,
-	});
-
-	const { data: isAddressWhitelisted, isLoading: isWhitelistedLoading } =
-		useContractRead({
-			addressOrName: WHITELIST_CONTRACT_ADDRESS,
-			contractInterface: WHITELIST_ABI,
-			functionName: "whitelistedAddresses",
-			args: [connectedWalletAddress],
-			enabled: connectedWalletAddress,
-			cacheTime: 2_000,
-			onSuccess(data) {
-				console.log("isWhitelisted", data);
-			},
-		});
-
 	const { data: isPresaleStarted } = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "presaleStarted",
 	});
 
 	const { data } = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "presaleEnded",
 		enabled: isPresaleStarted,
 		onSuccess(data) {
@@ -153,10 +86,10 @@ export default function MintNftPage() {
 	});
 
 	const { data: contractOwner } = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "owner",
-		onSuccess(contractOwner) {
+		async onSuccess(contractOwner) {
 			if (
 				connectedWalletAddress.toLowerCase() ===
 				contractOwner.toLowerCase()
@@ -167,10 +100,16 @@ export default function MintNftPage() {
 	});
 
 	const { data: numberOfTokensMinted } = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "tokenIds",
 		watch: true,
+	});
+
+	const { data: totalSupply } = useContractRead({
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
+		functionName: "maxTokenIds",
 	});
 
 	//Render Markup
@@ -203,34 +142,6 @@ export default function MintNftPage() {
 			);
 		}
 
-		if (!isAddressWhitelisted) {
-			return (
-				<button
-					style={{
-						minWidth: "240px",
-						display: "flex",
-						justifyContent: "center",
-						alignItems: "center",
-					}}
-					disabled={isAddressWhitelisted}
-					onClick={() => addToWhitelist([])}
-				>
-					{isJoiningWhitelist || isWhitelistedLoading ? (
-						<ThreeDots
-							height="18"
-							width="18"
-							radius="9"
-							color="#e5e5e5"
-							ariaLabel="three-dots-loading"
-							wrapperClassName=""
-							visible={true}
-						/>
-					) : (
-						"Join Whitelist"
-					)}
-				</button>
-			);
-		}
 		if (isOwner && !isPresaleStarted) {
 			return (
 				<button onClick={startPresale} style={{ minWidth: "240px" }}>
@@ -277,50 +188,22 @@ export default function MintNftPage() {
 	return (
 		<>
 			<h1>Welcome! Get your NFTs now</h1>
-			<h1>
+			{/* <h1>
 				Whitelisted Accounts:{" "}
 				<strong>{numberOfWhitelistedAddresses}</strong>
+			</h1> */}
+			<h1>
+				{numberOfTokensMinted?.toString()} of {totalSupply?.toString()}{" "}
+				have been minted
 			</h1>
-			<h1>{numberOfTokensMinted?.toString()} of 20 have been minted</h1>
 			<br />
 			<hr />
 			<h2>
-				{!isAddressWhitelisted
-					? "Join the whitelist, we are in presale"
-					: isPresaleStarted && !isPresaleEnded
+				{isPresaleStarted && !isPresaleEnded
 					? "Your are whitelisted, join presale now"
 					: "Mint your NFT Now"}
 			</h2>
 			{renderButton()}
-			<hr />
-			{isOwner && (
-				<>
-					<h2>Your are the owner of the contract</h2>
-					<button
-						style={{
-							display: "flex",
-							justifyContent: "center",
-							alignItems: "center",
-							minWidth: "240px",
-						}}
-						onClick={() => withdraw([])}
-					>
-						{isWithdrawing ? (
-							<ThreeDots
-								height="18"
-								width="18"
-								radius="9"
-								color="#e5e5e5"
-								ariaLabel="three-dots-loading"
-								wrapperClassName=""
-								visible={true}
-							/>
-						) : (
-							"Withdraw"
-						)}
-					</button>
-				</>
-			)}
 		</>
 	);
 }
