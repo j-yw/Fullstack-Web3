@@ -70,28 +70,26 @@ export default function ClaimTokenPage() {
 	}
 
 	const nftContract = useContract({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: provider,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 	});
 
 	const tokenContract = useContract({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
-		signerOrProvider: signer,
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
 	});
 
 	const { data: contractBalance } = useContractRead({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
 		functionName: "getContractBalance",
 		watch: true,
 	});
 
 	const { data: tokenBalance, isSuccess: isTokenBalanceSuccess } =
 		useContractRead({
-			addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-			contractInterface: DEVS_TOKEN_ABI,
+			address: DEVS_TOKEN_CONTRACT_ADDRESS,
+			abi: DEVS_TOKEN_ABI,
 			functionName: "balanceOf",
 			args: [connectedWalletAddress],
 			watch: true,
@@ -99,15 +97,15 @@ export default function ClaimTokenPage() {
 
 	const { data: totalSupply, isSuccess: isTokenTotalSupplySuccess } =
 		useContractRead({
-			addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-			contractInterface: DEVS_TOKEN_ABI,
+			address: DEVS_TOKEN_CONTRACT_ADDRESS,
+			abi: DEVS_TOKEN_ABI,
 			functionName: "totalSupply",
 			watch: true,
 		});
 
 	const { data: contractOwner, isLoading: isOwnerLoading } = useContractRead({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
 		functionName: "owner",
 		async onSuccess(contractOwner) {
 			if (
@@ -121,15 +119,15 @@ export default function ClaimTokenPage() {
 
 	const { data: nftBalance, isSuccess: isNftBalanceSuccess } =
 		useContractRead({
-			addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-			contractInterface: DEVS_NFT_ABI,
+			address: DEVS_NFT_CONTRACT_ADDRESS,
+			abi: DEVS_NFT_ABI,
 			functionName: "balanceOf",
 			args: [connectedWalletAddress],
 		});
 
-	const { data: mintData, write: mintToken } = useContractWrite({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
+	const { config: mintDataConfig } = usePrepareContractWrite({
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
 		functionName: "mint",
 		args: [
 			tokenAmount,
@@ -141,6 +139,9 @@ export default function ClaimTokenPage() {
 		],
 	});
 
+	const { data: mintData, write: mintToken } =
+		useContractWrite(mintDataConfig);
+
 	const { isError: isMintError, isLoading: isMinting } =
 		useWaitForTransaction({
 			hash: mintData?.hash,
@@ -148,8 +149,8 @@ export default function ClaimTokenPage() {
 		});
 
 	const { data: claimData, write: claimTokens } = useContractWrite({
-		addressOrName: DEVS_TOKEN_CONTRACT_ADDRESS,
-		contractInterface: DEVS_TOKEN_ABI,
+		address: DEVS_TOKEN_CONTRACT_ADDRESS,
+		abi: DEVS_TOKEN_ABI,
 		functionName: "claim",
 	});
 

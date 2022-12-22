@@ -1,26 +1,29 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
+import {
+	mainnet,
+	goerli,
+	configureChains,
+	createClient,
+	WagmiConfig,
+} from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
+import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
 import { Layout } from "../components";
 
-const chains = [
-	chain.mainnet,
-	chain.goerli,
-	chain.polygon,
-	chain.polygonMumbai,
-	chain.arbitrum,
-	chain.arbitrumGoerli,
-	chain.optimism,
-	chain.optimismGoerli,
-	chain.hardhat,
-	chain.localhost,
-];
+const chains = [mainnet, goerli];
 
 const { provider } = configureChains(chains, [
-	alchemyProvider({ apiKey: process.env.ALCHEMY_API_KEY }),
-	publicProvider(),
+	infuraProvider({
+		apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY,
+		priority: 0,
+	}),
+	alchemyProvider({
+		apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
+		priority: 1,
+	}),
+	publicProvider({ stallTimeout: 5_000, priority: 2 }),
 ]);
 
 const { connectors } = getDefaultWallets({

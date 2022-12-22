@@ -4,7 +4,6 @@ import { ThreeDots } from "react-loader-spinner";
 import { DEVS_NFT_ABI, DEVS_NFT_CONTRACT_ADDRESS } from "../constants";
 
 import {
-	useSigner,
 	useAccount,
 	usePrepareContractWrite,
 	useContractWrite,
@@ -15,32 +14,28 @@ import {
 export default function MintNftPage() {
 	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
 		useAccount();
-	const { data: signer } = useSigner();
 
 	const [isOwner, setIsOwner] = useState(false);
 	const [isPresaleEnded, setIsPresaleEnded] = useState(false);
 
 	// Contract Write prepare configs
 	const { config: presaleConfig } = usePrepareContractWrite({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: signer,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "presaleMint",
 		args: [{ value: utils.parseEther("0.01") }],
 	});
 
 	const { config: publicMintConfig } = usePrepareContractWrite({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: signer,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "mint",
 		args: [{ value: utils.parseEther("0.02") }],
 	});
 
 	const { config: startPresaleConfig } = usePrepareContractWrite({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
-		signerOrProvider: signer,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "startPresale",
 	});
 
@@ -74,14 +69,14 @@ export default function MintNftPage() {
 
 	//Contract Read Functions
 	const { data: isPresaleStarted } = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "presaleStarted",
 	});
 
 	const { data } = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "presaleEnded",
 		enabled: isPresaleStarted,
 		onSuccess(data) {
@@ -91,8 +86,8 @@ export default function MintNftPage() {
 	});
 
 	const { data: contractOwner } = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "owner",
 		async onSuccess(contractOwner) {
 			if (
@@ -105,12 +100,19 @@ export default function MintNftPage() {
 	});
 
 	const { data: numberOfTokensMinted } = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "tokenIds",
 		watch: true,
 	});
 
+	const { data: totalSupply } = useContractRead({
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
+		functionName: "maxTokenIds",
+	});
+
+	//Render Markup
 	function renderButton() {
 		if (
 			isPresaleMintLoading ||
@@ -185,8 +187,15 @@ export default function MintNftPage() {
 
 	return (
 		<>
-			<h1>Get your NFTs</h1>
-			<h1>{numberOfTokensMinted?.toString()} of 20 have been minted</h1>
+			<h1>Welcome! Get your NFTs now</h1>
+			{/* <h1>
+				Whitelisted Accounts:{" "}
+				<strong>{numberOfWhitelistedAddresses}</strong>
+			</h1> */}
+			<h1>
+				{numberOfTokensMinted?.toString()} of {totalSupply?.toString()}{" "}
+				have been minted
+			</h1>
 			<br />
 			<hr />
 			<h2>

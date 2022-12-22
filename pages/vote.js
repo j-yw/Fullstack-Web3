@@ -9,7 +9,6 @@ import {
 } from "../constants";
 
 import {
-	useSigner,
 	useAccount,
 	usePrepareContractWrite,
 	useWaitForTransaction,
@@ -30,19 +29,17 @@ export default function VotePage() {
 		useAccount();
 
 	const { data: treasuryBalance } = useBalance({
-		addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
+		address: DEVS_DAO_CONTRACT_ADDRESS,
 	});
 
-	const { data: signer } = useSigner();
 	const [proposalId, setProposalId] = useState("");
 	const [vote, setVote] = useState("");
 
 	const provider = useProvider();
 
 	const daoContract = useContract({
-		addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
-		contractInterface: DEVS_DAO_ABI,
-		signerOrProvider: signer,
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
 	});
 
 	async function getProposalById(id) {
@@ -83,8 +80,8 @@ export default function VotePage() {
 		isLoading: isNumberOfProposalsLoading,
 		isSuccess: isNumberOfProposalsSuccess,
 	} = useContractRead({
-		addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
-		contractInterface: DEVS_DAO_ABI,
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
 		functionName: "numberOfProposals",
 		watch: true,
 	});
@@ -94,23 +91,25 @@ export default function VotePage() {
 		isLoading: isNftBalanceLoading,
 		isSuccess: isNftBalanceSuccess,
 	} = useContractRead({
-		addressOrName: DEVS_NFT_CONTRACT_ADDRESS,
-		contractInterface: DEVS_NFT_ABI,
+		address: DEVS_NFT_CONTRACT_ADDRESS,
+		abi: DEVS_NFT_ABI,
 		functionName: "balanceOf",
 		args: [connectedWalletAddress],
 		watch: true,
 	});
 
+	const { config: createProposalDataConfig } = usePrepareContractWrite({
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
+		functionName: "createProposal",
+		args: [fakeNftTokenId],
+		onSuccess: () => {
+			getAllProposals();
+		},
+	});
+
 	const { data: createProposalData, write: createProposal } =
-		useContractWrite({
-			addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
-			contractInterface: DEVS_DAO_ABI,
-			functionName: "createProposal",
-			args: [fakeNftTokenId],
-			onSuccess: () => {
-				getAllProposals();
-			},
-		});
+		useContractWrite(createProposalDataConfig);
 
 	const {
 		isError: isCreateProposalError,
@@ -121,19 +120,25 @@ export default function VotePage() {
 		wait: createProposalData?.wait,
 	});
 
-	const { data: voteData, write: voteOnProposal } = useContractWrite({
-		addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
-		contractInterface: DEVS_DAO_ABI,
+	const { config: voteDataConfig } = usePrepareContractWrite({
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
 		functionName: "voteOnProposal",
 		args: [proposalId, vote],
 	});
 
-	const { data: executeData, write: execute } = useContractWrite({
+	const { data: voteData, write: voteOnProposal } =
+		useContractWrite(voteDataConfig);
+
+	const { config: executeDataConfig } = usePrepareContractWrite({
 		addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
 		contractInterface: DEVS_DAO_ABI,
 		functionName: "executeProposal",
 		args: [proposalId],
 	});
+
+	const { data: executeData, write: execute } =
+		useContractWrite(executeDataConfig);
 
 	const {
 		isError: isVotingError,
@@ -395,7 +400,7 @@ export default function VotePage() {
 				)}
 			</h2>
 
-			<h2>Treasury Balance {treasuryBalance.formatted}</h2>
+			<h2>Treasury Balance {treasuryBalance?.formatted}</h2>
 
 			<button
 				onClick={() => setSelectedTab("Create Proposal")}
