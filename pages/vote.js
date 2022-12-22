@@ -25,6 +25,8 @@ export default function VotePage() {
 	const [selectedTab, setSelectedTab] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
+	const provider = useProvider();
+
 	const { address: connectedWalletAddress, isConnected: isWalletConnected } =
 		useAccount();
 
@@ -35,11 +37,10 @@ export default function VotePage() {
 	const [proposalId, setProposalId] = useState("");
 	const [vote, setVote] = useState("");
 
-	const provider = useProvider();
-
 	const daoContract = useContract({
 		address: DEVS_DAO_CONTRACT_ADDRESS,
 		abi: DEVS_DAO_ABI,
+		signerOrProvider: provider,
 	});
 
 	async function getProposalById(id) {
@@ -131,8 +132,8 @@ export default function VotePage() {
 		useContractWrite(voteDataConfig);
 
 	const { config: executeDataConfig } = usePrepareContractWrite({
-		addressOrName: DEVS_DAO_CONTRACT_ADDRESS,
-		contractInterface: DEVS_DAO_ABI,
+		address: DEVS_DAO_CONTRACT_ADDRESS,
+		abi: DEVS_DAO_ABI,
 		functionName: "executeProposal",
 		args: [proposalId],
 	});
@@ -375,7 +376,7 @@ export default function VotePage() {
 				) : (
 					<span>
 						Your NFT balance is{" "}
-						{isNftBalanceSuccess && nftBalance.toString()}
+						{isNftBalanceSuccess && nftBalance?.toString()}
 					</span>
 				)}
 			</h2>
@@ -395,7 +396,7 @@ export default function VotePage() {
 					<span>
 						Total number of proposals:{" "}
 						{isNumberOfProposalsSuccess &&
-							numberOfProposals.toString()}
+							numberOfProposals?.toString()}
 					</span>
 				)}
 			</h2>

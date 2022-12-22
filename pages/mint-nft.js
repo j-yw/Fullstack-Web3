@@ -158,10 +158,7 @@ export default function MintNftPage() {
 		if (isPresaleStarted && !isPresaleEnded) {
 			return (
 				<>
-					<button
-						style={{ minWidth: "240px" }}
-						onClick={() => presaleMint()}
-					>
+					<button style={{ minWidth: "240px" }} onClick={presaleMint}>
 						Presale Mint
 					</button>
 				</>
@@ -170,10 +167,7 @@ export default function MintNftPage() {
 
 		if (isPresaleStarted && isPresaleEnded) {
 			return (
-				<button
-					style={{ minWidth: "240px" }}
-					onClick={() => publicMint()}
-				>
+				<button style={{ minWidth: "240px" }} onClick={publicMint}>
 					Public Mint
 				</button>
 			);
