@@ -179,8 +179,6 @@ export default function ClaimTokenPage() {
 		return <h1>Please Connect Your Wallet</h1>;
 	}
 
-	console.log(tokensToBeClaimed);
-
 	return (
 		<>
 			<h1>

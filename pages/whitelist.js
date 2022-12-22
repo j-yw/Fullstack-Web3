@@ -34,9 +34,6 @@ export default function WhitelistPage() {
 			args: [address],
 			enabled: address,
 			cacheTime: 2_000,
-			onSuccess(data) {
-				console.log(data);
-			},
 		});
 
 	if (!isWalletConnected) {
